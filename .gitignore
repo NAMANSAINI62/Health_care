@@ -1,0 +1,42 @@
+# Environment Variables (Secrets & Keys)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Local Databases & SQLite
+*.db
+*.sqlite
+*.sqlite3
+aivoa_complaints.db
+backend/aivoa_complaints.db
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+venv/
+.venv/
+env/
+__pycache__/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+
+# Build & Output Directories
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temp & Cache
+*.log
+.pytest_cache/
