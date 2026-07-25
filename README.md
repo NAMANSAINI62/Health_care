@@ -5,6 +5,15 @@ An AI-driven Quality Management System (QMS) application built for pharmaceutica
 
 ---
 
+## 🌐 Live Production Links
+
+- **Live Frontend Web App**: [https://health-care-five-rosy.vercel.app](https://health-care-five-rosy.vercel.app) *(Vercel CDN)*
+- **Live Backend API**: [https://health-care-t51v.onrender.com](https://health-care-t51v.onrender.com) *(Render FastAPI)*
+- **Live Cloud Database**: Supabase PostgreSQL Cloud
+- **GitHub Repository**: [https://github.com/NAMANSAINI62/Health_care.git](https://github.com/NAMANSAINI62/Health_care.git)
+
+---
+
 ### 🌟 Core Paradigm: 100% Agent-Driven Form Population
 The left-hand complaint form is **read-only output**. Users never manually type into form inputs. All form entries, partial edits, QMS risk assessments, root cause predictions, and document extractions are orchestrated by the **LangGraph AI Co-Pilot** in the right panel through natural language chat or document uploads (`.pdf`, `.txt`, `.eml`, `.doc`, `.docx`).
 
@@ -107,13 +116,13 @@ Access the application at `http://localhost:5173`.
 
 ---
 
-## 🌐 Cloud Deployment Guide
+## 🌐 Cloud Deployment Architecture
 
-| Component | Host | Build Command / Config |
-| :--- | :--- | :--- |
-| **Frontend (React)** | **Vercel** | Framework: `Vite`, Build: `npm run build`, Output: `dist` |
-| **Backend (FastAPI)** | **Render / Railway** | Build: `pip install -r requirements.txt`, Start: `uvicorn main:app --host 0.0.0.0 --port $PORT` |
-| **Database (PostgreSQL)** | **Supabase / Neon** | PostgreSQL Connection String (`postgresql+asyncpg://...`) |
+| Component | Host | Live Production URL | Build Command / Config |
+| :--- | :--- | :--- | :--- |
+| **Frontend (React)** | **Vercel** | [https://health-care-five-rosy.vercel.app](https://health-care-five-rosy.vercel.app) | Framework: `Vite`, Root: `frontend`, Build: `npm run build` |
+| **Backend (FastAPI)** | **Render** | [https://health-care-t51v.onrender.com](https://health-care-t51v.onrender.com) | Root: `backend`, Build: `pip install -r requirements.txt`, Start: `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| **Database (PostgreSQL)** | **Supabase** | `aws-1-ap-south-1.pooler.supabase.com:6543` | PostgreSQL Connection URI (`postgresql+asyncpg://...`) |
 
 ---
 
