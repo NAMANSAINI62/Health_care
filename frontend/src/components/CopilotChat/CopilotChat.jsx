@@ -164,10 +164,19 @@ export const CopilotChat = () => {
         ))}
 
         {isLoading && (
-          <div className="chat-bubble assistant">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
-              <Loader2 size={15} className="animate-spin text-blue-600" />
-              <span>AI Co-pilot is processing...</span>
+          <div className="ai-thinking-bubble">
+            <div className="ai-thinking-content">
+              <div className="ai-sparkle-ring">
+                <Sparkles size={16} className="text-sky-500 animate-spin-slow" />
+              </div>
+              <span className="ai-thinking-text">
+                AI Co-pilot is processing complaint & evaluating risk...
+              </span>
+            </div>
+            <div className="thinking-dots">
+              <span className="thinking-dot" />
+              <span className="thinking-dot" />
+              <span className="thinking-dot" />
             </div>
           </div>
         )}
