@@ -1,8 +1,15 @@
 import React from 'react';
-import { ShieldCheck, PlusCircle, History } from 'lucide-react';
+import { ShieldCheck, PlusCircle, History, FileText, ClipboardCheck } from 'lucide-react';
 import StatusPill from '../StatusPill/StatusPill';
 
-export const Header = ({ complaintId, status, onNewComplaint, onOpenAuditModal }) => {
+export const Header = ({ 
+  activeTab, 
+  onTabChange, 
+  complaintId, 
+  status, 
+  onNewComplaint, 
+  onOpenAuditModal 
+}) => {
   return (
     <header className="app-header">
       <div className="brand-section">
@@ -12,10 +19,26 @@ export const Header = ({ complaintId, status, onNewComplaint, onOpenAuditModal }
         <div>
           <div className="brand-name">Pharma QMS Complaint Hub</div>
         </div>
+
+        {/* View Navigation Tabs */}
+        <nav className="header-nav-tabs">
+          <button 
+            className={`nav-tab-btn ${activeTab === 'triage' ? 'active' : ''}`}
+            onClick={() => onTabChange('triage')}
+          >
+            <FileText size={15} /> Complaint Triage & Form
+          </button>
+          <button 
+            className={`nav-tab-btn ${activeTab === 'capa' ? 'active' : ''}`}
+            onClick={() => onTabChange('capa')}
+          >
+            <ClipboardCheck size={15} /> CAPA Module
+          </button>
+        </nav>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {complaintId && (
+        {complaintId && activeTab === 'triage' && (
           <>
             <span className="complaint-id-tag">
               Complaint #{complaintId}
@@ -26,7 +49,7 @@ export const Header = ({ complaintId, status, onNewComplaint, onOpenAuditModal }
           </>
         )}
 
-        <StatusPill status={status} />
+        {activeTab === 'triage' && <StatusPill status={status} />}
 
         <button className="btn-pill-primary" onClick={onNewComplaint}>
           <PlusCircle size={15} /> New Complaint
