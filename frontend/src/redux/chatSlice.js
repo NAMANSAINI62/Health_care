@@ -7,7 +7,7 @@ const chatSlice = createSlice({
       {
         id: 'welcome',
         role: 'assistant',
-        content: 'Hello! I am your QMS AI Co-Pilot powered by LangGraph & Groq. Log a complaint by describing it naturally, or upload a complaint document (PDF/Email) to extract fields.',
+        content: 'Hello! I am your QMS AI Co-Pilot. Log a complaint by describing it naturally, or upload a complaint document (PDF/Email) to extract fields.',
         tool_used: null,
       }
     ],
@@ -32,7 +32,7 @@ const chatSlice = createSlice({
         {
           id: 'welcome',
           role: 'assistant',
-          content: 'Hello! I am your QMS AI Co-Pilot powered by LangGraph & Groq. Log a complaint by describing it naturally, or upload a complaint document (PDF/Email) to extract fields.',
+          content: 'Hello! I am your QMS AI Co-Pilot. Log a complaint by describing it naturally, or upload a complaint document (PDF/Email) to extract fields.',
           tool_used: null,
         }
       ];
