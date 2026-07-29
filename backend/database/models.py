@@ -28,6 +28,57 @@ class Complaint(Base):
 
     chat_messages = relationship("ComplaintChatMessage", back_populates="complaint", cascade="all, delete-orphan")
     audit_logs = relationship("ComplaintFieldAudit", back_populates="complaint", cascade="all, delete-orphan")
+    qa_signatures = relationship("QASignature", back_populates="complaint", cascade="all, delete-orphan")
+    capas = relationship("CAPA", back_populates="complaint", cascade="all, delete-orphan")
+
+class QASignature(Base):
+    __tablename__ = "qa_signatures"
+
+    id = Column(Integer, primary_key=True, index=True)
+    complaint_id = Column(Integer, ForeignKey("complaints.id", ondelete="CASCADE"), nullable=False)
+    signer_name = Column(String(255), nullable=False)
+    signer_role = Column(String(100), nullable=False, default="QA Manager")
+    signature_meaning = Column(String(255), nullable=False)
+    checksum_hash = Column(String(128), nullable=False)  # SHA-256 state snapshot hash for 21 CFR Part 11 compliance
+    comments = Column(Text, nullable=True)
+    signed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    complaint = relationship("Complaint", back_populates="qa_signatures")
+
+class CAPA(Base):
+    __tablename__ = "capas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    capa_number = Column(String(100), unique=True, index=True, nullable=False)
+    complaint_id = Column(Integer, ForeignKey("complaints.id", ondelete="SET NULL"), nullable=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    root_cause = Column(Text, nullable=True)
+    severity = Column(String(50), nullable=False, default="Major")  # Critical, Major, Minor
+    owner_department = Column(String(150), nullable=False, default="Quality Assurance")  # e.g., Packaging, Sterile Block B, QC
+    assignee_name = Column(String(255), nullable=True)
+    status = Column(String(50), nullable=False, default="Open")  # Open, In Progress, Under Review, Completed, Overdue
+    due_date = Column(DateTime(timezone=True), nullable=True)
+    escalation_status = Column(String(50), nullable=False, default="Normal")  # Normal, Escalated - Level 1, Escalated - Level 2
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    complaint = relationship("Complaint", back_populates="capas")
+    action_items = relationship("CAPAActionItem", back_populates="capa", cascade="all, delete-orphan")
+
+class CAPAActionItem(Base):
+    __tablename__ = "capa_action_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    capa_id = Column(Integer, ForeignKey("capas.id", ondelete="CASCADE"), nullable=False)
+    action_type = Column(String(50), nullable=False, default="Corrective Action")  # Corrective Action, Preventive Action
+    description = Column(Text, nullable=False)
+    assignee = Column(String(255), nullable=True)
+    due_date = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(50), nullable=False, default="Pending")  # Pending, In Progress, Completed
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    capa = relationship("CAPA", back_populates="action_items")
 
 class ComplaintChatMessage(Base):
     __tablename__ = "complaint_chat_messages"
