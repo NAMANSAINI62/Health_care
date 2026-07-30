@@ -73,23 +73,17 @@ export const AuditLogModal = ({ complaintId, isOpen, onClose }) => {
                   <th>Field Name</th>
                   <th>Old Value</th>
                   <th>New Value</th>
-                  <th>Changed By</th>
                   <th>Timestamp</th>
                 </tr>
               </thead>
               <tbody>
-                {auditLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td className="font-mono text-blue-600 font-semibold">{log.field_name}</td>
-                    <td className="text-slate-500">{log.old_value || 'EMPTY'}</td>
-                    <td className="text-emerald-600 font-medium">{log.new_value}</td>
-                    <td>
-                      <span style={{ fontSize: '11px', background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '9999px', fontWeight: '600' }}>
-                        {log.changed_by}
-                      </span>
-                    </td>
+                {auditLogs.map((data) => (
+                  <tr key={data.id}>
+                    <td className="font-mono text-blue-600 font-semibold">{data.field_name}</td>
+                    <td className="text-slate-500">{data.old_value || 'EMPTY'}</td>
+                    <td className="text-emerald-600 font-medium">{data.new_value}</td>
                     <td className="text-slate-600 font-mono text-xs font-medium">
-                      {formatISTTimestamp(log.changed_at)}
+                      {formatISTTimestamp(data.changed_at)}
                     </td>
                   </tr>
                 ))}
