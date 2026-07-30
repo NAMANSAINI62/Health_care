@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Bot, Send, Paperclip, Loader2, Cpu, Sparkles } from 'lucide-react';
 import { addMessage, setIsLoading, setCurrentTool } from '../../redux/chatSlice';
-import { setComplaintState, setLastUpdatedFields } from '../../redux/complaintSlice';
-import { sendChatMessage, uploadDocumentFile } from '../../api/complaintsApi';
+import { setComplaintState, setLastUpdatedFields, setScannedImagePreview } from '../../redux/complaintSlice';
+import { sendChatMessage, uploadDocumentFile, scanPackagingImage } from '../../api/complaintsApi';
 
 export const CopilotChat = () => {
   const [inputText, setInputText] = useState('');
@@ -89,48 +89,100 @@ export const CopilotChat = () => {
     const file = e.target.files?.[0];
     if (!file || isLoading) return;
 
-    dispatch(addMessage({
-      id: Date.now().toString(),
-      role: 'user',
-      content: `📎 Uploaded Document: ${file.name}`,
-      tool_used: 'document_extraction'
-    }));
+    const isImage = file.type.startsWith('image/') || ['.png', '.jpg', '.jpeg', '.webp'].some(ext => file.name.toLowerCase().endsWith(ext));
 
-    dispatch(setIsLoading(true));
-    dispatch(setCurrentTool('document_extraction'));
-
-    try {
-      const response = await uploadDocumentFile(file, complaintId);
-
-      dispatch(setComplaintState({
-        complaint_id: response.complaint_id,
-        form_data: response.form_data,
-        risk_assessment: response.risk_assessment,
-        status: response.status
-      }));
-
-      if (response.form_data) {
-        const nonNullKeys = Object.keys(response.form_data).filter(k => Boolean(response.form_data[k]));
-        dispatch(setLastUpdatedFields(nonNullKeys));
-      }
+    if (isImage) {
+      const previewUrl = URL.createObjectURL(file);
+      dispatch(setScannedImagePreview(previewUrl));
 
       dispatch(addMessage({
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.assistant_message,
+        id: Date.now().toString(),
+        role: 'user',
+        content: `📷 Uploaded Packaging Photo: ${file.name}`,
+        tool_used: 'multimodal_image_ocr'
+      }));
+
+      dispatch(setIsLoading(true));
+      dispatch(setCurrentTool('multimodal_image_ocr'));
+
+      try {
+        const response = await scanPackagingImage(file, complaintId);
+
+        dispatch(setComplaintState({
+          complaint_id: response.complaint_id,
+          form_data: response.form_data,
+          risk_assessment: response.risk_assessment,
+          status: response.status,
+          detected_defects: response.detected_defects || []
+        }));
+
+        if (response.form_data) {
+          const nonNullKeys = Object.keys(response.form_data).filter(k => Boolean(response.form_data[k]));
+          dispatch(setLastUpdatedFields(nonNullKeys));
+        }
+
+        dispatch(addMessage({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.assistant_message,
+          tool_used: 'multimodal_image_ocr'
+        }));
+      } catch (error) {
+        console.error('Error scanning image file:', error);
+        dispatch(addMessage({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '⚠️ Packaging image OCR scan failed. Please check image clarity.',
+          tool_used: null
+        }));
+      } finally {
+        dispatch(setIsLoading(false));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    } else {
+      dispatch(addMessage({
+        id: Date.now().toString(),
+        role: 'user',
+        content: `📎 Uploaded Document: ${file.name}`,
         tool_used: 'document_extraction'
       }));
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      dispatch(addMessage({
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: '⚠️ File extraction failed.',
-        tool_used: null
-      }));
-    } finally {
-      dispatch(setIsLoading(false));
-      if (fileInputRef.current) fileInputRef.current.value = '';
+
+      dispatch(setIsLoading(true));
+      dispatch(setCurrentTool('document_extraction'));
+
+      try {
+        const response = await uploadDocumentFile(file, complaintId);
+
+        dispatch(setComplaintState({
+          complaint_id: response.complaint_id,
+          form_data: response.form_data,
+          risk_assessment: response.risk_assessment,
+          status: response.status
+        }));
+
+        if (response.form_data) {
+          const nonNullKeys = Object.keys(response.form_data).filter(k => Boolean(response.form_data[k]));
+          dispatch(setLastUpdatedFields(nonNullKeys));
+        }
+
+        dispatch(addMessage({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.assistant_message,
+          tool_used: 'document_extraction'
+        }));
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        dispatch(addMessage({
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '⚠️ File extraction failed.',
+          tool_used: null
+        }));
+      } finally {
+        dispatch(setIsLoading(false));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -208,7 +260,7 @@ export const CopilotChat = () => {
             type="file"
             ref={fileInputRef}
             style={{ display: 'none' }}
-            accept=".pdf,.txt,.eml,.doc,.docx"
+            accept=".pdf,.txt,.eml,.doc,.docx,.png,.jpg,.jpeg,.webp"
             onChange={handleFileUpload}
           />
 
