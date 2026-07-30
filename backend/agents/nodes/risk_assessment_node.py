@@ -28,13 +28,17 @@ def risk_assessment_node(state: ComplaintAgentState) -> ComplaintAgentState:
 
     state["risk_assessment"] = cleaned_risk
 
-    # Automatically set status based on completeness
+    # Enforce FDA 21 CFR Part 11 HITL: Critical or Major complaints require Pending QA Signoff
     has_product = bool(fields.get("product_name"))
     has_batch = bool(fields.get("batch_lot_number"))
     has_desc = bool(fields.get("complaint_description"))
 
+    sev = cleaned_risk["severity"]
     if has_product and has_batch and has_desc:
-        state["status"] = "Ready to Commit"
+        if sev in ["Critical", "Major"]:
+            state["status"] = "Pending QA Signoff"
+        else:
+            state["status"] = "Ready to Commit"
     else:
         state["status"] = "Pending Triage"
 
