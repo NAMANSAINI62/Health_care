@@ -52,9 +52,6 @@ export const RiskAssessmentPanel = ({ onOpenSignModal, onOpenCapaTab, activeComp
               </div>
             </div>
           </div>
-          <div className="sig-hash-line">
-            <span>SHA-256 Hash:</span> <code>{latestSignature.checksum_hash}</code>
-          </div>
         </div>
       )}
 
@@ -75,15 +72,17 @@ export const RiskAssessmentPanel = ({ onOpenSignModal, onOpenCapaTab, activeComp
       )}
 
       <div className="risk-block">
-        <div className="risk-title">Suggested QMS Action</div>
-        <div className="risk-text font-medium flex items-center gap-2">
-          <Activity size={15} className="text-blue-600" style={{ display: 'inline', marginRight: '6px' }} />
+        <div className="risk-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Activity size={15} className="text-blue-600" />
+          Prevention & Corrective Solution (Suggested QMS Action)
+        </div>
+        <div className="risk-text font-medium" style={{ color: '#0369a1', background: '#f0f9ff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
           {riskAssessment.suggested_next_action || 'Awaiting AI complaint analysis...'}
         </div>
       </div>
 
       <div className="risk-block">
-        <div className="risk-title">Initial Risk Narrative</div>
+        <div className="risk-title">Diagnosis & Initial Risk Narrative</div>
         <div className="risk-text">
           {riskAssessment.initial_risk_assessment || 'No risk narrative generated yet.'}
         </div>
