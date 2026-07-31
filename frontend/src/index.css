@@ -1488,3 +1488,200 @@ textarea.form-control-readonly {
   margin-top: 10px;
 }
 
+.ocr-scanner-banner {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px dashed #0284c7;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+.ocr-scanner-banner:hover {
+  border-color: #0284c7;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+
+.ocr-upload-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.ocr-dropzone-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #7dd3fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.ocr-dropzone-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ocr-dropzone-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.ocr-dropzone-subtitle {
+  font-size: 11px;
+  color: #0284c7;
+  margin-top: 2px;
+}
+
+.btn-scan-action {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-scan-action:hover {
+  background: #0369a1;
+}
+
+.ocr-preview-container {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.ocr-preview-thumbnail-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #0284c7;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.ocr-preview-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes scanLaser {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+.ocr-scanner-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8, 0 0 5px #ffffff;
+  animation: scanLaser 1.5s infinite ease-in-out;
+}
+
+.ocr-preview-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ocr-file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ocr-filename {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ocr-btn-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ocr-btn-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.ocr-scanning-status {
+  font-size: 12px;
+  color: #0284c7;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ocr-scan-success {
+  font-size: 12px;
+  color: #166534;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ocr-defects-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.defect-tag-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.defect-pill {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+

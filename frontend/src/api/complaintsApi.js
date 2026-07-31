@@ -20,11 +20,26 @@ export const sendChatMessage = async (complaintId, message) => {
 export const uploadDocumentFile = async (file, complaintId) => {
   const formData = new FormData();
   formData.append('file', file);
-  if (complaintId) {
-    formData.append('complaint_id', complaintId);
+  if (complaintId && !isNaN(parseInt(complaintId, 10))) {
+    formData.append('complaint_id', parseInt(complaintId, 10));
   }
 
   const response = await api.post('/api/complaints/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const scanPackagingImage = async (file, complaintId) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (complaintId && !isNaN(parseInt(complaintId, 10))) {
+    formData.append('complaint_id', parseInt(complaintId, 10));
+  }
+
+  const response = await api.post('/api/complaints/scan-image', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
