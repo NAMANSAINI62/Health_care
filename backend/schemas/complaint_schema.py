@@ -33,6 +33,7 @@ class ChatResponse(BaseModel):
     status: str = "Pending Triage"
     assistant_message: str
     tool_used: str
+    detected_defects: Optional[List[str]] = []
 
 class ChatMessageRead(BaseModel):
     id: int
