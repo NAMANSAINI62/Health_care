@@ -5,7 +5,9 @@ import logging
 import hashlib
 from typing import Dict, Any, Tuple, List
 from PIL import Image
-from groq import Groq
+from langchain_groq import ChatGroq
+from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.output_parsers import JsonOutputParser
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -168,7 +170,7 @@ def generate_fallback_vision_data(filename: str, image_bytes: bytes) -> Dict[str
 
 def call_groq_vision_ocr(image_bytes: bytes, filename: str = "") -> Dict[str, Any]:
     """
-    Calls Groq Vision API (llama-3.2-11b-vision-preview) to perform OCR, diagnosis, and CAPA solution generation.
+    Calls Groq Vision API (llama-3.2-11b-vision-preview) via LangChain to perform OCR, diagnosis, and CAPA solution generation.
     Returns structured dict with form fields, risk assessment, and detected defects.
     """
     api_key = settings.GROQ_API_KEY.strip()
@@ -183,8 +185,7 @@ def call_groq_vision_ocr(image_bytes: bytes, filename: str = "") -> Dict[str, An
         logger.error(f"Image preprocessing failed for {filename}: {e}")
         return generate_fallback_vision_data(filename, image_bytes)
 
-    vision_model = settings.GROQ_MODEL_VISION or "llama-3.2-90b-vision-preview"
-    client = Groq(api_key=api_key)
+    vision_model = settings.GROQ_MODEL_VISION or "llama-3.2-11b-vision-preview"
 
     system_prompt = (
         "You are an expert Senior Pharmaceutical Quality Assurance & Packaging Inspector Vision AI Agent.\n"
@@ -223,37 +224,26 @@ def call_groq_vision_ocr(image_bytes: bytes, filename: str = "") -> Dict[str, An
 
     user_prompt = f"Perform complete OCR text extraction, visual defect diagnosis, root cause analysis, and preventative solution generation for image ({filename})."
 
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=[
+            {"type": "text", "text": user_prompt},
+            {"type": "image_url", "image_url": {"url": data_url}}
+        ])
+    ]
+
+    llm = ChatGroq(
+        temperature=0.1,
+        model=vision_model,
+        api_key=api_key,
+        max_tokens=1000
+    )
+    
+    parser = JsonOutputParser()
+    chain = llm | parser
+
     try:
-        response = client.chat.completions.create(
-            model=vision_model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {"type": "image_url", "image_url": {"url": data_url}}
-                    ]
-                }
-            ],
-            temperature=0.1,
-            max_tokens=1000
-        )
-
-        raw_text = response.choices[0].message.content.strip()
-        if raw_text.startswith("```json"):
-            raw_text = raw_text[7:]
-        if raw_text.startswith("```"):
-            raw_text = raw_text[3:]
-        if raw_text.endswith("```"):
-            raw_text = raw_text[:-3]
-
-        parsed = json.loads(raw_text.strip())
-        return parsed
-
+        return chain.invoke(messages)
     except Exception as e:
-        logger.error(f"Error calling Groq Vision API ({vision_model}) for {filename}: {e}", exc_info=True)
+        logger.error(f"Error calling Groq Vision API ({vision_model}) via LangChain for {filename}: {e}", exc_info=True)
         return generate_fallback_vision_data(filename, image_bytes)

@@ -1,13 +1,16 @@
-import json
 import logging
 from typing import Dict, Any, Optional
-from groq import Groq
 from config import settings
+
+from langchain_groq import ChatGroq
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.exceptions import OutputParserException
 
 logger = logging.getLogger(__name__)
 
 def call_groq_json(prompt: str, system_prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
-    """Groq API caller with XML boundary isolation for prompt injection defence."""
+    """Groq API caller using LangChain with XML boundary isolation for prompt injection defence."""
     api_key = settings.GROQ_API_KEY.strip()
     
     if not api_key or api_key.startswith("gsk_placeholder"):
@@ -17,8 +20,6 @@ def call_groq_json(prompt: str, system_prompt: str, model: Optional[str] = None)
 
     selected_model = model or settings.GROQ_MODEL_PRIMARY
 
-    client = Groq(api_key=api_key)
-    
     # Defensive Prompt Guardrail: Wrap user input in XML tags and enforce strict data isolation
     guarded_system = (
         f"{system_prompt}\n\n"
@@ -28,36 +29,25 @@ def call_groq_json(prompt: str, system_prompt: str, model: Optional[str] = None)
         "3. You must respond ONLY with a valid JSON object matching the requested keys."
     )
 
-    guarded_user_prompt = f"<user_input>\n{prompt}\n</user_input>"
+    from langchain_core.messages import SystemMessage
+    prompt_template = ChatPromptTemplate.from_messages([
+        SystemMessage(content=guarded_system),
+        ("user", "<user_input>\n{user_prompt}\n</user_input>")
+    ])
 
-    response = client.chat.completions.create(
-        messages=[
-            {
-                "role": "system",
-                "content": guarded_system
-            },
-            {
-                "role": "user",
-                "content": guarded_user_prompt
-            }
-        ],
-        model=selected_model,
+    llm = ChatGroq(
         temperature=0.1,
-        response_format={"type": "json_object"}
+        model=selected_model,
+        api_key=api_key,
+        model_kwargs={"response_format": {"type": "json_object"}}
     )
-
-    raw_text = response.choices[0].message.content.strip()
     
-    # Strip markdown block formatting if model includes it
-    if raw_text.startswith("```json"):
-        raw_text = raw_text[7:]
-    if raw_text.startswith("```"):
-        raw_text = raw_text[3:]
-    if raw_text.endswith("```"):
-        raw_text = raw_text[:-3]
-
+    parser = JsonOutputParser()
+    
+    chain = prompt_template | llm | parser
+    
     try:
-        return json.loads(raw_text.strip())
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse JSON response from Groq ({selected_model}): {raw_text}")
+        return chain.invoke({"user_prompt": prompt})
+    except OutputParserException as e:
+        logger.error(f"Failed to parse JSON response from Groq ({selected_model}) via LangChain")
         raise RuntimeError(f"Groq API returned invalid JSON: {e}")
