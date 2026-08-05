@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from database.connection import init_db_tables
-from routes import complaints, chat, capa
+from routes import complaints, chat, capa, trend_detection
 
 app = FastAPI(
     title="Pharma QMS Complaint API",
@@ -34,6 +34,7 @@ async def startup_db():
 app.include_router(complaints.router)
 app.include_router(chat.router)
 app.include_router(capa.router)
+app.include_router(trend_detection.router)
 
 @app.get("/health")
 async def health_check():

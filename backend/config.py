@@ -11,6 +11,5 @@ class Settings:
     )
     GROQ_MODEL_PRIMARY: str = os.getenv("GROQ_MODEL_PRIMARY", "llama-3.3-70b-versatile")
     GROQ_MODEL_CONTEXT: str = os.getenv("GROQ_MODEL_CONTEXT", "llama-3.3-70b-versatile")
-    GROQ_MODEL_VISION: str = os.getenv("GROQ_MODEL_VISION", "llama-3.2-90b-vision-preview")
 
 settings = Settings()

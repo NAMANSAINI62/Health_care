@@ -32,21 +32,6 @@ export const uploadDocumentFile = async (file, complaintId) => {
   return response.data;
 };
 
-export const scanPackagingImage = async (file, complaintId) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  if (complaintId && !isNaN(parseInt(complaintId, 10))) {
-    formData.append('complaint_id', parseInt(complaintId, 10));
-  }
-
-  const response = await api.post('/api/complaints/scan-image', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
-};
-
 export const fetchComplaints = async () => {
   const response = await api.get('/api/complaints');
   return response.data;
@@ -104,6 +89,11 @@ export const toggleCapaActionItem = async (itemId, status) => {
 
 export const escalateCapa = async (capaId, level = 'Escalated - Level 1') => {
   const response = await api.post(`/api/capas/${capaId}/escalate?level=${encodeURIComponent(level)}`);
+  return response.data;
+};
+
+export const predictTrends = async (payload) => {
+  const response = await api.post('/api/trends/predict', payload);
   return response.data;
 };
 

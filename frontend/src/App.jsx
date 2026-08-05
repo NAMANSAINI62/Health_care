@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Header from './components/Header/Header';
 import ComplaintForm from './components/ComplaintForm/ComplaintForm';
 import RiskAssessmentPanel from './components/RiskAssessmentPanel/RiskAssessmentPanel';
+import PredictiveTrendPanel from './components/PredictiveTrendPanel/PredictiveTrendPanel';
 import CopilotChat from './components/CopilotChat/CopilotChat';
 import AuditLogModal from './components/AuditLogModal/AuditLogModal';
 import DigitalSignatureModal from './components/DigitalSignatureModal/DigitalSignatureModal';
@@ -146,6 +147,14 @@ function App() {
               activeComplaintFull={activeComplaintFull}
               onOpenSignModal={() => setIsSignModalOpen(true)}
               onOpenCapaTab={() => setActiveTab('capa')}
+            />
+            <PredictiveTrendPanel
+              onSelectComplaint={(cId) => loadFullComplaint(cId)}
+              onReuseSolution={(solutionText) => {
+                dispatch(setComplaintState({
+                  risk_assessment: { suggested_next_action: solutionText }
+                }));
+              }}
             />
           </div>
 

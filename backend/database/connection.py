@@ -51,15 +51,6 @@ async def get_db():
                 yield session
             finally:
                 await session.close()
-    except Exception:
-        # Emergency session fallback to SQLite if PostgreSQL fails mid-session
-        fallback_url = "sqlite+aiosqlite:///./aivoa_complaints.db"
-        engine = get_engine(fallback_url)
-        AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        async with AsyncSessionLocal() as session:
-            try:
-                yield session
-            finally:
-                await session.close()
+    except Exception as e:
+        logger.error(f"Database session error: {e}")
+        raise
