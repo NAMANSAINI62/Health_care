@@ -8,7 +8,7 @@ export const Header = ({
   complaintId, 
   status, 
   onNewComplaint, 
-  onOpenAuditModal 
+  onOpenAuditModal
 }) => {
   return (
     <header className="app-header">

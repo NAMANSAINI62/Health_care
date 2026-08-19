@@ -1,12 +1,12 @@
 import asyncio
-from database.connection import init_db_tables, AsyncSessionLocal
+import database.connection as db_conn
 from database.models import Complaint
 from sqlalchemy.future import select
 from agents.vector_store import index_complaint_vector
 
 async def seed():
-    await init_db_tables()
-    async with AsyncSessionLocal() as db:
+    await db_conn.init_db_tables()
+    async with db_conn.AsyncSessionLocal() as db:
         stmt = select(Complaint)
         res = await db.execute(stmt)
         complaints = res.scalars().all()

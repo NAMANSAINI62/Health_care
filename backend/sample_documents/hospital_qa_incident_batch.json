@@ -1,0 +1,42 @@
+{
+  "batch_source": "Hospital System Audit Export Q3",
+  "total_records": 3,
+  "records": [
+    {
+      "customer_name": "Sunrise Medical Center",
+      "product_name": "Pantoprazole 40mg IV",
+      "product_strength": "40mg Vial",
+      "batch_lot_number": "PNZ-6630",
+      "manufacturing_date": "Jan 2026",
+      "expiry_date": "Jan 2028",
+      "affected_quantity": "120 Vials",
+      "complaint_category": "Vial Glass Hairline Crack",
+      "complaint_description": "Hairline crack detected near vial base with slight liquid leakage.",
+      "originating_site_block": "Block C - Sterile Injectable Block"
+    },
+    {
+      "customer_name": "National Health Dispensary",
+      "product_name": "Clopidogrel 75mg Film-Coated",
+      "product_strength": "75mg",
+      "batch_lot_number": "CPG-4091",
+      "manufacturing_date": "Feb 2026",
+      "expiry_date": "Feb 2028",
+      "affected_quantity": "400 Tablets",
+      "complaint_category": "Film Coating Peeling",
+      "complaint_description": "Outer pink film coating peeling off inside blister pockets.",
+      "originating_site_block": "Block A - Coating Line 1"
+    },
+    {
+      "customer_name": "United Pharma Wholesalers",
+      "product_name": "Meropenem 1g Sterile Powder",
+      "product_strength": "1g",
+      "batch_lot_number": "MPN-8802",
+      "manufacturing_date": "Mar 2026",
+      "expiry_date": "Mar 2028",
+      "affected_quantity": "90 Vials",
+      "complaint_category": "Discoloration & Yellowing",
+      "complaint_description": "Sterile cake powder turned pale yellow after storage at 25°C.",
+      "originating_site_block": "Block C - Aseptic Suite 4"
+    }
+  ]
+}

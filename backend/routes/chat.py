@@ -1,17 +1,22 @@
 import io
 import time
+import json
+import csv
+import re
 import logging
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from database.connection import get_db
 from database.models import Complaint, ComplaintChatMessage, ComplaintFieldAudit
-from schemas.complaint_schema import ChatRequest, ChatResponse, ComplaintFormData, RiskAssessmentData
+from schemas.complaint_schema import (
+    ChatRequest, ChatResponse, ComplaintFormData, RiskAssessmentData
+)
 from agents.graph import complaint_agent_graph
 from agents.state import ComplaintAgentState
-from agents.vector_store import index_complaint_vector
+from agents.vector_store import index_complaint_vector, query_similar_complaints, get_predictive_clusters
 
 logger = logging.getLogger(__name__)
 

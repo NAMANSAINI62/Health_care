@@ -32,6 +32,7 @@ export const uploadDocumentFile = async (file, complaintId) => {
   return response.data;
 };
 
+
 export const fetchComplaints = async () => {
   const response = await api.get('/api/complaints');
   return response.data;

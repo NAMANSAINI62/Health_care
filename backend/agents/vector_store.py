@@ -1,10 +1,9 @@
 import random
 import os
 import logging
-import hashlib
-import math
 from typing import List, Dict, Any, Optional
 import chromadb
+from chromadb.utils import embedding_functions
 
 logger = logging.getLogger(__name__)
 
@@ -14,31 +13,6 @@ os.makedirs(CHROMA_DIR, exist_ok=True)
 _chroma_client = None
 _collection = None
 
-def generate_simple_embedding(text: str, dim: int = 384) -> List[float]:
-    """
-    Generates a 384-dimensional dense vector embedding from input text using SHA-256 term hashing.
-    Enforces deterministic mathematical vector space mapping for cosine similarity search.
-    """
-    if not text:
-        text = "empty complaint description"
-
-    words = text.lower().split()
-    vector = [0.0] * dim
-
-    for idx, word in enumerate(words):
-        h = int(hashlib.sha256(word.encode('utf-8')).hexdigest(), 16)
-        pos = h % dim
-        val = ((h >> 8) % 1000) / 1000.0 - 0.5
-        vector[pos] += val * (1.0 / (idx + 1.0))
-
-    norm = math.sqrt(sum(v * v for v in vector))
-    if norm > 0:
-        vector = [v / norm for v in vector]
-    else:
-        vector = [1.0 / math.sqrt(dim)] * dim
-
-    return vector
-
 
 def get_collection():
     global _chroma_client, _collection
@@ -46,21 +20,27 @@ def get_collection():
         return _collection
 
     try:
+        # Initialize default embedding function (SentenceTransformer BGE-small-en-v1.5)
+        default_ef = embedding_functions.DefaultEmbeddingFunction()
+        
         _chroma_client = chromadb.PersistentClient(path=CHROMA_DIR)
         _collection = _chroma_client.get_or_create_collection(
             name="pharma_complaints_vector_store",
+            embedding_function=default_ef,
             metadata={"hnsw:space": "cosine"}
         )
-        logger.info("ChromaDB PersistentClient initialized.")
+        logger.info("ChromaDB PersistentClient initialized with default embedding function.")
     except Exception as e:
         logger.warning(f"ChromaDB PersistentClient warning ({e}). Initializing EphemeralClient fallback...")
         try:
+            default_ef = embedding_functions.DefaultEmbeddingFunction()
             _chroma_client = chromadb.EphemeralClient()
             _collection = _chroma_client.get_or_create_collection(
                 name="pharma_complaints_vector_store",
+                embedding_function=default_ef,
                 metadata={"hnsw:space": "cosine"}
             )
-            logger.info("ChromaDB EphemeralClient initialized.")
+            logger.info("ChromaDB EphemeralClient initialized with default embedding function.")
         except Exception as ex:
             logger.error(f"Failed EphemeralClient fallback: {ex}")
             return None
@@ -69,9 +49,6 @@ def get_collection():
 
 
 def index_complaint_vector(complaint_id: int, complaint_data: Dict[str, Any]) -> bool:
-    """
-    Automatically converts complaint fields into a vector embedding and upserts into ChromaDB.
-    """
     coll = get_collection()
     if not coll:
         return False
@@ -80,8 +57,6 @@ def index_complaint_vector(complaint_id: int, complaint_data: Dict[str, Any]) ->
         doc_text = f"{complaint_data.get('product_name', '')} {complaint_data.get('complaint_category', '')} {complaint_data.get('complaint_description', '')} {complaint_data.get('originating_site_block', '')} {complaint_data.get('impacted_npm', '')}".strip()
         if not doc_text:
             doc_text = f"Complaint ID {complaint_id}"
-
-        embedding = generate_simple_embedding(doc_text)
 
         metadata = {
             "complaint_id": int(complaint_id),
@@ -94,9 +69,9 @@ def index_complaint_vector(complaint_id: int, complaint_data: Dict[str, Any]) ->
             "likely_root_cause": str(complaint_data.get("likely_root_cause") or "")
         }
 
+        # ChromaDB will automatically call the registered embedding function on doc_text
         coll.upsert(
             ids=[f"cmp_{complaint_id}"],
-            embeddings=[embedding],
             documents=[doc_text],
             metadatas=[metadata]
         )
@@ -108,9 +83,6 @@ def index_complaint_vector(complaint_id: int, complaint_data: Dict[str, Any]) ->
 
 
 def query_similar_complaints(query_data: Dict[str, Any], top_k: int = 5) -> List[Dict[str, Any]]:
-    """
-    Performs 100% automated vector similarity search using ChromaDB cosine distances.
-    """
     coll = get_collection()
     if not coll:
         return []
@@ -120,11 +92,11 @@ def query_similar_complaints(query_data: Dict[str, Any], top_k: int = 5) -> List
         if not query_text:
             query_text = "Pharmaceutical Packaging Quality Inspection"
 
-        query_vector = generate_simple_embedding(query_text)
         current_id = query_data.get("complaint_id")
 
+        # Query ChromaDB using raw text (query_texts) instead of manual vector embeddings
         results = coll.query(
-            query_embeddings=[query_vector],
+            query_texts=[query_text],
             n_results=top_k + 2
         )
 
@@ -142,14 +114,10 @@ def query_similar_complaints(query_data: Dict[str, Any], top_k: int = 5) -> List
                 if current_id and cmp_id == int(current_id):
                     continue
 
-                doc_text = documents[i] if documents[i] else ""
-                doc_vector = generate_simple_embedding(doc_text)
-
-                # Dot Product optimization on normalized embeddings
-                dot_product = sum(q * d for q, d in zip(query_vector, doc_vector))
-                
-                # Calculate true percentage similarity from dot product
-                normalized_dot = (dot_product + 1.0) / 2.0  # 0.0 to 1.0
+                distance = distances[i]
+                # Cosine similarity = 1 - distance
+                # Normalized similarity = (Cosine similarity + 1) / 2 = 1.0 - (distance / 2.0)
+                normalized_dot = 1.0 - (distance / 2.0)
                 true_score = int(normalized_dot * 100)
                 
                 # Apply a strict cutoff: Ignore if similarity is not naturally high
@@ -166,7 +134,7 @@ def query_similar_complaints(query_data: Dict[str, Any], top_k: int = 5) -> List
                     "product_name": meta.get("product_name") or "Pharmaceutical Product",
                     "batch_lot_number": meta.get("batch_lot_number") or "LOT-UNKNOWN",
                     "similarity_score": similarity_score,
-                    "symptom_summary": doc_text if doc_text else meta.get("complaint_category", "Packaging Defect"),
+                    "symptom_summary": documents[i] if documents[i] else meta.get("complaint_category", "Packaging Defect"),
                     "site_block": meta.get("originating_site_block") or "Manufacturing Block",
                     "proven_solution": meta.get("suggested_next_action") or "Route to QA Investigation",
                     "severity": meta.get("severity") or "Major",
@@ -185,9 +153,6 @@ def query_similar_complaints(query_data: Dict[str, Any], top_k: int = 5) -> List
 
 
 def get_predictive_clusters() -> List[Dict[str, Any]]:
-    """
-    Automatically groups vectors stored in ChromaDB into defect quality clusters.
-    """
     coll = get_collection()
     if not coll:
         return []
@@ -229,3 +194,4 @@ def get_predictive_clusters() -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error computing ChromaDB clusters: {e}")
         return []
+
