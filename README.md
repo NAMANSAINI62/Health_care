@@ -91,7 +91,7 @@ Create `backend/.env`:
 ```env
 GROQ_API_KEY=gsk_your_groq_api_key_here
 GROQ_MODEL_PRIMARY=llama-3.3-70b-versatile
-DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5432/aivoa_complaints
+DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@localhost:5400/aivoa_complaints
 ```
 
 Create `frontend/.env`:
