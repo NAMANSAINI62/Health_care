@@ -1,6 +1,14 @@
+import os
+import sys
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+
+# Allow running as `python backend/main.py` from project root
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
 from database.connection import init_db_tables
 from routes import complaints, chat, capa, trend_detection
 
@@ -41,4 +49,6 @@ async def health_check():
     return {"status": "ok", "app": "Pharma QMS Complaint System"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    host = os.getenv("BACKEND_HOST", "127.0.0.1")
+    port = int(os.getenv("BACKEND_PORT", "8000"))
+    uvicorn.run(app, host=host, port=port, reload=True)
