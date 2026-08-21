@@ -1,29 +1,13 @@
 from agents.state import ComplaintAgentState
 from agents.llm import call_groq_json
+from agents.prompts import DOC_EXTRACTION_SYSTEM, DOC_EXTRACTION_USER  # Import templates
 
 def document_extraction_tool_node(state: ComplaintAgentState) -> ComplaintAgentState:
-    """Node 2C: Extracts complaint details from document/file uploads, filling all 12 fields."""
     doc_text = state.get("document_text", "")
 
-    system_prompt = (
-        "You are an expert pharmaceutical Quality Assurance AI Assistant.\n"
-        "Extract and infer ALL 12 fields from the uploaded complaint document into a JSON object:\n"
-        "- complaint_source (e.g. Pharmacy, Hospital, Email, Distributor, Patient)\n"
-        "- customer_name (e.g. Apollo Pharmacy, CVS, MedPlus)\n"
-        "- product_name (e.g. Amoxicillin Capsules, Paracetamol Injection)\n"
-        "- product_strength (e.g. 500mg, 10 mg/mL)\n"
-        "- batch_lot_number (e.g. BMX-240602, CHG-260712A)\n"
-        "- manufacturing_date (e.g. Jan 2026 — infer standard Mfg date if missing)\n"
-        "- expiry_date (e.g. Jan 2028 — infer standard 2-year Expiry date if missing)\n"
-        "- affected_quantity (e.g. 48 capsules, 100 vials)\n"
-        "- complaint_category (e.g. Discoloration, Packaging Defect, Contamination)\n"
-        "- complaint_description (Detailed summary of document complaint)\n"
-        "- originating_site_block (e.g. Block A - Sterile Injectables, Block B - Solid Oral Dosage)\n"
-        "- impacted_npm (Non-Product Materials e.g. PVC Blister Foil, Glass Vial, Rubber Stopper)\n\n"
-        "IMPORTANT: Infer realistic defaults for any missing fields so that ALL 12 FIELDS are populated."
-    )
-
-    prompt = f"Document Extracted Text:\n'{doc_text}'"
+    system_prompt = DOC_EXTRACTION_SYSTEM.format()
+    prompt = DOC_EXTRACTION_USER.format(doc_text=doc_text)
+    
     extracted = call_groq_json(prompt, system_prompt)
 
     all_keys = [

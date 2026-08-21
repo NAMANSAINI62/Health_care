@@ -10,7 +10,6 @@ from langchain_core.exceptions import OutputParserException
 logger = logging.getLogger(__name__)
 
 def call_groq_json(prompt: str, system_prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
-    """Groq API caller using LangChain with XML boundary isolation for prompt injection defence."""
     api_key = settings.GROQ_API_KEY.strip()
     
     if not api_key or api_key.startswith("gsk_placeholder"):
@@ -20,7 +19,6 @@ def call_groq_json(prompt: str, system_prompt: str, model: Optional[str] = None)
 
     selected_model = model or settings.GROQ_MODEL_PRIMARY
 
-    # Defensive Prompt Guardrail: Wrap user input in XML tags and enforce strict data isolation
     guarded_system = (
         f"{system_prompt}\n\n"
         "SECURITY INSTRUCTIONS:\n"
