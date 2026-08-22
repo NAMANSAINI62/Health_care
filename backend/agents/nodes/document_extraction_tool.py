@@ -1,5 +1,5 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_groq_json
+from agents.llm import call_llm_json
 from agents.prompts import DOC_EXTRACTION_SYSTEM, DOC_EXTRACTION_USER  # Import templates
 
 def document_extraction_tool_node(state: ComplaintAgentState) -> ComplaintAgentState:
@@ -8,7 +8,7 @@ def document_extraction_tool_node(state: ComplaintAgentState) -> ComplaintAgentS
     system_prompt = DOC_EXTRACTION_SYSTEM.format()
     prompt = DOC_EXTRACTION_USER.format(doc_text=doc_text)
     
-    extracted = call_groq_json(prompt, system_prompt)
+    extracted = call_llm_json(prompt, system_prompt)
 
     all_keys = [
         "complaint_source", "customer_name", "product_name", "product_strength",

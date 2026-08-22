@@ -1,5 +1,5 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_groq_json
+from agents.llm import call_llm_json
 from agents.prompts import EDIT_COMPLAINT_SYSTEM, EDIT_COMPLAINT_USER  # Import templates
 from typing import Dict, Any
 
@@ -11,7 +11,7 @@ def edit_complaint_tool_node(state: ComplaintAgentState) -> ComplaintAgentState:
     system_prompt = EDIT_COMPLAINT_SYSTEM.format()
     prompt = EDIT_COMPLAINT_USER.format(existing=existing, user_msg=user_msg)
     
-    res = call_groq_json(prompt, system_prompt)
+    res = call_llm_json(prompt, system_prompt)
     updates: Dict[str, Any] = res.get("updated_fields", {})
 
     merged = existing.copy()

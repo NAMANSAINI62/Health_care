@@ -1,5 +1,5 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_groq_json
+from agents.llm import call_llm_json
 from agents.prompts import RISK_ASSESSMENT_SYSTEM, RISK_ASSESSMENT_USER  # Import templates
 
 def risk_assessment_node(state: ComplaintAgentState) -> ComplaintAgentState:
@@ -9,7 +9,7 @@ def risk_assessment_node(state: ComplaintAgentState) -> ComplaintAgentState:
     system_prompt = RISK_ASSESSMENT_SYSTEM.format()
     prompt = RISK_ASSESSMENT_USER.format(fields=fields)
     
-    risk_res = call_groq_json(prompt, system_prompt)
+    risk_res = call_llm_json(prompt, system_prompt)
 
     cleaned_risk = {
         "severity": str(risk_res.get("severity", "Major")),

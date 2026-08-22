@@ -1,5 +1,5 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_groq_json
+from agents.llm import call_llm_json
 
 def response_formatter_node(state: ComplaintAgentState) -> ComplaintAgentState:
     """Node 4: Generates the natural confirmation message describing what fields were extracted/updated."""

@@ -23,6 +23,25 @@ async def predict_trends(
     Automatically indexes active database complaints into ChromaDB vector store,
     performs cosine vector similarity search, and calculates anomaly clusters.
     """
+    # 1. Automatically index all existing complaints from DB into ChromaDB
+    try:
+        stmt_all = select(Complaint).order_by(Complaint.id.desc()).limit(50)
+        res_all = await db.execute(stmt_all)
+        all_complaints = res_all.scalars().all()
+        for c in all_complaints:
+            index_complaint_vector(c.id, {
+                "product_name": c.product_name,
+                "batch_lot_number": c.batch_lot_number,
+                "complaint_category": c.complaint_category,
+                "complaint_description": c.complaint_description,
+                "originating_site_block": c.originating_site_block,
+                "severity": c.severity,
+                "suggested_next_action": c.suggested_next_action,
+                "likely_root_cause": c.likely_root_cause
+            })
+    except Exception as e:
+        print(f"Auto-vector indexing error: {e}")
+
     complaint_id = payload.get("complaint_id")
     query_dict = payload.copy()
 
