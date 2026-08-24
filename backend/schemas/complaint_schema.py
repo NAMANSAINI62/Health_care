@@ -58,27 +58,6 @@ class AuditLogRead(BaseModel):
     class Config:
         from_attributes = True
 
-class QASignatureCreate(BaseModel):
-    signer_name: str
-    signer_role: str = "QA Manager"
-    signature_meaning: str = "Approval of Complaint Classification, Root Cause & Risk Assessment"
-    checksum_hash: str
-    comments: Optional[str] = ""
-    auto_spawn_capa: Optional[bool] = True
-
-class QASignatureRead(BaseModel):
-    id: int
-    complaint_id: int
-    signer_name: str
-    signer_role: str
-    signature_meaning: str
-    checksum_hash: str
-    comments: Optional[str] = None
-    signed_at: datetime
-
-    class Config:
-        from_attributes = True
-
 class CAPAActionItemCreate(BaseModel):
     action_type: str = "Corrective Action"
     description: str
@@ -162,7 +141,6 @@ class ComplaintRead(BaseModel):
     updated_at: datetime
     chat_messages: List[ChatMessageRead] = []
     audit_logs: List[AuditLogRead] = []
-    qa_signatures: List[QASignatureRead] = []
     capas: List[CAPARead] = []
 
     class Config:

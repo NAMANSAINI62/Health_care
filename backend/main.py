@@ -10,7 +10,7 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from database.connection import init_db_tables
-from routes import complaints, chat, capa, trend_detection
+from routes import complaints, chat, capa
 
 app = FastAPI(
     title="Pharma QMS Complaint API",
@@ -42,7 +42,7 @@ async def startup_db():
 app.include_router(complaints.router)
 app.include_router(chat.router)
 app.include_router(capa.router)
-app.include_router(trend_detection.router)
+
 
 @app.get("/health")
 async def health_check():

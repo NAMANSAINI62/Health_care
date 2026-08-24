@@ -3,19 +3,17 @@ import { useSelector, useDispatch } from 'react-redux';
 import Header from './components/Header/Header';
 import ComplaintForm from './components/ComplaintForm/ComplaintForm';
 import RiskAssessmentPanel from './components/RiskAssessmentPanel/RiskAssessmentPanel';
-import PredictiveTrendPanel from './components/PredictiveTrendPanel/PredictiveTrendPanel';
+
 import CopilotChat from './components/CopilotChat/CopilotChat';
 import AuditLogModal from './components/AuditLogModal/AuditLogModal';
-import DigitalSignatureModal from './components/DigitalSignatureModal/DigitalSignatureModal';
 import CapaDashboard from './components/CapaDashboard/CapaDashboard';
 import { resetForm, setComplaintState } from './redux/complaintSlice';
 import { clearChat, setMessages } from './redux/chatSlice';
-import { fetchComplaintById, updateComplaintStatus, signOffComplaint } from './api/complaintsApi';
+import { fetchComplaintById, updateComplaintStatus } from './api/complaintsApi';
 
 function App() {
   const [activeTab, setActiveTab] = useState('triage');
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
-  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [activeComplaintFull, setActiveComplaintFull] = useState(null);
   const [rightPanelWidth, setRightPanelWidth] = useState(480);
   const [isResizing, setIsResizing] = useState(false);
@@ -116,12 +114,6 @@ function App() {
     }
   };
 
-  const handleSignOffSubmit = async (signaturePayload) => {
-    if (!complaintId) return;
-    const updatedData = await signOffComplaint(complaintId, signaturePayload);
-    setActiveComplaintFull(updatedData);
-    dispatch(setComplaintState({ status: updatedData.status }));
-  };
 
   const handleSelectComplaintFromCapa = (cId) => {
     setActiveTab('triage');
@@ -145,17 +137,9 @@ function App() {
             <ComplaintForm />
             <RiskAssessmentPanel
               activeComplaintFull={activeComplaintFull}
-              onOpenSignModal={() => setIsSignModalOpen(true)}
               onOpenCapaTab={() => setActiveTab('capa')}
             />
-            <PredictiveTrendPanel
-              onSelectComplaint={(cId) => loadFullComplaint(cId)}
-              onReuseSolution={(solutionText) => {
-                dispatch(setComplaintState({
-                  risk_assessment: { suggested_next_action: solutionText }
-                }));
-              }}
-            />
+
           </div>
 
           <div
@@ -182,12 +166,7 @@ function App() {
         onClose={() => setIsAuditModalOpen(false)}
       />
 
-      <DigitalSignatureModal
-        complaint={activeComplaintFull || { id: complaintId, status, severity: 'Major' }}
-        isOpen={isSignModalOpen}
-        onClose={() => setIsSignModalOpen(false)}
-        onSignOff={handleSignOffSubmit}
-      />
+
     </div>
   );
 }

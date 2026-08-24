@@ -1,15 +1,12 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { ShieldAlert, Activity, Lightbulb, FileSignature, ShieldCheck, ClipboardCheck, ArrowUpRight } from 'lucide-react';
+import { ShieldAlert, Activity, Lightbulb, ClipboardCheck, ArrowUpRight } from 'lucide-react';
 
-export const RiskAssessmentPanel = ({ onOpenSignModal, onOpenCapaTab, activeComplaintFull }) => {
+export const RiskAssessmentPanel = ({ onOpenCapaTab, activeComplaintFull }) => {
   const { riskAssessment, status, complaintId } = useSelector((state) => state.complaint);
   const severity = (riskAssessment.severity || 'Minor').toLowerCase();
 
-  const isPendingHitl = status === 'Pending QA Signoff';
-  const signatures = activeComplaintFull?.qa_signatures || [];
   const capas = activeComplaintFull?.capas || [];
-  const latestSignature = signatures.length > 0 ? signatures[signatures.length - 1] : null;
   const linkedCapa = capas.length > 0 ? capas[0] : null;
 
   return (
@@ -23,37 +20,6 @@ export const RiskAssessmentPanel = ({ onOpenSignModal, onOpenCapaTab, activeComp
           Severity: {riskAssessment.severity || 'Minor'}
         </span>
       </div>
-
-      {/* HITL QA Digital Signoff Prompt Banner */}
-      {isPendingHitl && (
-        <div className="hitl-action-banner">
-          <div className="hitl-banner-text">
-            <FileSignature size={18} className="text-amber-600" />
-            <div>
-              <strong>FDA 21 CFR Part 11 Approval Required</strong>
-              <p>AI Triage completed. Human QA Officer must review and digitally sign off on regulatory classification.</p>
-            </div>
-          </div>
-          <button className="btn-hitl-sign" onClick={onOpenSignModal}>
-            Digitally Sign & Authorize
-          </button>
-        </div>
-      )}
-
-      {/* Existing Digital Signature Verification Card if already signed */}
-      {latestSignature && (
-        <div className="verified-sig-card">
-          <div className="sig-card-header">
-            <ShieldCheck size={18} className="text-emerald-600" />
-            <div>
-              <strong>Digitally Authorized by QA</strong>
-              <div className="sig-signer-meta">
-                {latestSignature.signer_name} ({latestSignature.signer_role}) • {new Date(latestSignature.signed_at).toLocaleDateString()}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Linked CAPA Badge */}
       {linkedCapa && (

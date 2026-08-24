@@ -13,7 +13,7 @@ from schemas.complaint_schema import (
 )
 from agents.graph import complaint_agent_graph
 from agents.state import ComplaintAgentState
-from agents.vector_store import index_complaint_vector, query_similar_complaints, get_predictive_clusters
+
 
 logger = logging.getLogger(__name__)
 
@@ -146,8 +146,6 @@ async def chat_with_copilot(
 
         await db.commit()
 
-        # Index complaint into ChromaDB Vector Store
-        index_complaint_vector(complaint_obj.id, {**merged, **risk})
 
         form_data_obj = ComplaintFormData(**{f: merged.get(f, "") for f in FORM_FIELDS})
         risk_obj = RiskAssessmentData(

@@ -53,10 +53,7 @@ export const updateComplaintStatus = async (id, status) => {
   return response.data;
 };
 
-export const signOffComplaint = async (id, signaturePayload) => {
-  const response = await api.post(`/api/complaints/${id}/sign-off`, signaturePayload);
-  return response.data;
-};
+
 
 export const fetchCapas = async (params = {}) => {
   const response = await api.get('/api/capas', { params });
@@ -90,11 +87,6 @@ export const toggleCapaActionItem = async (itemId, status) => {
 
 export const escalateCapa = async (capaId, level = 'Escalated - Level 1') => {
   const response = await api.post(`/api/capas/${capaId}/escalate?level=${encodeURIComponent(level)}`);
-  return response.data;
-};
-
-export const predictTrends = async (payload) => {
-  const response = await api.post('/api/trends/predict', payload);
   return response.data;
 };
 

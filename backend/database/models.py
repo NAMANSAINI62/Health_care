@@ -28,22 +28,7 @@ class Complaint(Base):
 
     chat_messages = relationship("ComplaintChatMessage", back_populates="complaint", cascade="all, delete-orphan")
     audit_logs = relationship("ComplaintFieldAudit", back_populates="complaint", cascade="all, delete-orphan")
-    qa_signatures = relationship("QASignature", back_populates="complaint", cascade="all, delete-orphan")
     capas = relationship("CAPA", back_populates="complaint", cascade="all, delete-orphan")
-
-class QASignature(Base):
-    __tablename__ = "qa_signatures"
-
-    id = Column(Integer, primary_key=True, index=True)
-    complaint_id = Column(Integer, ForeignKey("complaints.id", ondelete="CASCADE"), nullable=False)
-    signer_name = Column(String(255), nullable=False)
-    signer_role = Column(String(100), nullable=False, default="QA Manager")
-    signature_meaning = Column(String(255), nullable=False)
-    checksum_hash = Column(String(128), nullable=False)  # SHA-256 state snapshot hash for 21 CFR Part 11 compliance
-    comments = Column(Text, nullable=True)
-    signed_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    complaint = relationship("Complaint", back_populates="qa_signatures")
 
 class CAPA(Base):
     __tablename__ = "capas"
