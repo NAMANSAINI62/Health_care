@@ -1,8 +1,8 @@
-﻿# 🏥 Pharma QMS Complaint Hub — AI-Powered Quality Management System
+# 🏥 Pharma QMS Complaint Hub — AI-Powered Quality Management System
 
 **Pharmaceutical Manufacturing Quality Management System (FDA 21 CFR Part 11 Compliant)**
 
-An end-to-end AI-driven Quality Management System (QMS) for pharmaceutical FDF / Sterile / API customer complaint processing, automated triage, CAPA management, and predictive trend detection powered by a **LangGraph AI Agent** and **ChromaDB Vector Store**.
+An end-to-end AI-driven Quality Management System (QMS) for pharmaceutical FDF / Sterile / API customer complaint processing, automated triage, and CAPA management powered by a **LangGraph AI Agent**.
 
 ---
 
@@ -31,20 +31,14 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
 3. **QMS Risk Assessment Engine** — Computes Severity (`Minor`, `Major`, `Critical`), Suggested QMS Action, Risk Narrative, and **Predicted Root Cause**.
 4. **Document Extraction Mode** — Parses uploaded PDF/TXT/EML/DOC/DOCX files and auto-populates complaint form fields.
 
-### 📊 Predictive Trend Detection (ChromaDB Vector Store)
-5. **Real-Time Vector Similarity Search** — Auto-indexes all active DB complaints into **ChromaDB** and performs cosine vector similarity search using **SentenceTransformer BGE-small-en-v1.5** embeddings.
-6. **Quality Anomaly Cluster Detection** — Automatically calculates and surfaces active quality defect clusters grouped by product, site/block, and complaint category.
-7. **Anomaly Alert System** — Flags high-similarity complaint patterns (>=70% cosine match) with a confidence-scored anomaly alert panel.
-
 ### 📋 CAPA Management
-8. **Automated CAPA Generation** — Auto-spawns structured CAPA records with corrective & preventive action items on QA sign-off for Critical/Major severity complaints.
+8. **Automated CAPA Generation** — Auto-spawns structured CAPA records with corrective & preventive action items for Critical/Major severity complaints.
 9. **CAPA Lifecycle Tracking** — Full CAPA workflow: `Open -> In Progress -> Completed`, with individual action item completion tracking.
 10. **CAPA Escalation Engine** — Escalate overdue CAPAs to `Escalated - Level 1/2/3` with automated audit trail entries.
 
 ### 🛡️ Compliance & Audit (FDA 21 CFR Part 11)
-11. **QA Digital Sign-Off** — Records cryptographic-hash-backed digital signatures with signer name, role, and meaning.
-12. **Immutable Field Audit Trail** — Tracks every field mutation (`old_value -> new_value`, `changed_by`, `timestamp`) formatted in **Indian Standard Time (IST)**.
-13. **Zero-Data-Loss F5 Refresh** — Persists active `complaint_id` in `localStorage` and auto-hydrates full state and chat history on page reload.
+11. **Immutable Field Audit Trail** — Tracks every field mutation (`old_value -> new_value`, `changed_by`, `timestamp`) formatted in **Indian Standard Time (IST)**.
+12. **Zero-Data-Loss F5 Refresh** — Persists active `complaint_id` in `localStorage` and auto-hydrates full state and chat history on page reload.
 
 ### 🎨 UI/UX
 14. **Dynamic Draggable Splitter** — Left/right panels separated by a resizable divider with smooth scrolling.
@@ -78,32 +72,11 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
                (Generates natural confirmation reply)
                                     |
                                     v
-                           [DB Persist + ChromaDB Index]
-                 (Saves complaint, audit log, chat history,
-                  and indexes complaint vector embedding)
+                              [DB Persist]
+             (Saves complaint, audit log, and chat history)
                                     |
                                     v
                              [ FRONTEND API ]
-```
-
-### ChromaDB Vector Trend Detection Flow
-```
-POST /api/trends/predict
-         |
-         v
-  Auto-index last 50 DB complaints into ChromaDB
-         |
-         v
-  Cosine vector similarity search (BGE-small-en-v1.5)
-         |
-         v
-  Get predictive clusters (group by site/block + category)
-         |
-         v
-  Compute anomaly alert (similarity >= 70%)
-         |
-         v
-  Return: { vector_matches, clusters, anomaly_alert }
 ```
 
 ---
@@ -115,8 +88,7 @@ POST /api/trends/predict
 | **Frontend** | React 18, Redux Toolkit, Vite, Lucide Icons, Google Inter Font |
 | **Backend** | Python 3.11, FastAPI, SQLAlchemy (Async), Uvicorn |
 | **AI Agent** | LangGraph `StateGraph`, HuggingFace Inference API (`Qwen/Qwen2.5-Coder-32B-Instruct`) |
-| **LLM Integration** | LangChain HuggingFace, LangChain Core, `JsonOutputParser` |
-| **Vector Store** | ChromaDB (Persistent + Ephemeral fallback), SentenceTransformer `BGE-small-en-v1.5` |
+| **LLM Integration** | LangChain Core, `JsonOutputParser` |
 | **Database** | PostgreSQL (Supabase Cloud) / SQLite dual-fallback engine |
 | **Document Parsing** | PyPDF (`pypdf`), plain-text / EML fallback |
 | **PDF Generation** | FPDF2 + Pillow |
@@ -132,13 +104,11 @@ Health_care/
 │   ├── main.py                    # FastAPI app entry point, CORS, security headers
 │   ├── config.py                  # Settings (HF_API_KEY, DATABASE_URL, model names)
 │   ├── requirements.txt           # Python dependencies
-│   ├── seed_vector_store.py       # Utility to pre-seed ChromaDB with sample data
 │   ├── agents/
 │   │   ├── graph.py               # LangGraph StateGraph definition
 │   │   ├── llm.py                 # HuggingFace LLM caller with prompt injection guard
 │   │   ├── prompts.py             # All LLM system & user prompt templates
 │   │   ├── state.py               # ComplaintAgentState TypedDict
-│   │   ├── vector_store.py        # ChromaDB: index, query, cluster functions
 │   │   └── nodes/
 │   │       ├── intent_router.py           # Classifies user intent
 │   │       ├── log_complaint_tool.py      # Extracts 12 fields from user message
@@ -149,8 +119,7 @@ Health_care/
 │   ├── routes/
 │   │   ├── complaints.py          # CRUD, QA sign-off, audit trail
 │   │   ├── chat.py                # AI chat & document upload endpoints
-│   │   ├── capa.py                # CAPA lifecycle & escalation endpoints
-│   │   └── trend_detection.py     # Vector trend & anomaly detection endpoints
+│   │   └── capa.py                # CAPA lifecycle & escalation endpoints
 │   ├── database/
 │   │   ├── connection.py          # Async SQLAlchemy engine & session
 │   │   └── models.py              # ORM models (Complaint, CAPA, Audit, Chat, QASignature)
@@ -168,7 +137,6 @@ Health_care/
     │       ├── ComplaintForm/     # Read-only AI-populated form
     │       ├── CopilotChat/       # AI chat panel with file upload
     │       ├── RiskAssessmentPanel/  # Severity, root cause, actions
-    │       ├── PredictiveTrendPanel/ # Vector similarity & anomaly alerts
     │       ├── CapaDashboard/     # CAPA list with filters
     │       ├── CapaDetailModal/   # CAPA detail & action items
     │       ├── AuditLogModal/     # Field mutation history
@@ -190,100 +158,6 @@ Health_care/
 | 4 | **HTTP Security Headers** | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `X-XSS-Protection`, `Referrer-Policy` injected on every response |
 | 5 | **Input Length Cap** | Chat messages capped at **5,000 characters** → HTTP 400 on breach |
 | 6 | **CORS Policy** | Restricted to approved frontend origins only |
-
----
-
-## 📋 Database Schema
-
-```sql
--- Core complaint record
-CREATE TABLE complaints (
-    id                    SERIAL PRIMARY KEY,
-    complaint_source      VARCHAR(50),
-    customer_name         VARCHAR(255),
-    product_name          VARCHAR(255),
-    product_strength      VARCHAR(100),
-    batch_lot_number      VARCHAR(100),
-    manufacturing_date    VARCHAR(50),
-    expiry_date           VARCHAR(50),
-    affected_quantity     VARCHAR(100),
-    complaint_category    VARCHAR(150),
-    complaint_description TEXT,
-    originating_site_block VARCHAR(150),
-    impacted_npm          VARCHAR(255),
-    status                VARCHAR(50)  DEFAULT 'Pending Triage',
-    severity              VARCHAR(50),
-    suggested_next_action VARCHAR(255),
-    initial_risk_assessment TEXT,
-    likely_root_cause     TEXT,
-    created_at            TIMESTAMP    DEFAULT NOW(),
-    updated_at            TIMESTAMP    DEFAULT NOW()
-);
-
--- AI chat conversation history
-CREATE TABLE complaint_chat_messages (
-    id           SERIAL PRIMARY KEY,
-    complaint_id INTEGER REFERENCES complaints(id) ON DELETE CASCADE,
-    role         VARCHAR(20) NOT NULL,
-    content      TEXT        NOT NULL,
-    tool_used    VARCHAR(50),
-    created_at   TIMESTAMP   DEFAULT NOW()
-);
-
--- Immutable field-level audit trail (FDA 21 CFR Part 11)
-CREATE TABLE complaint_field_audit (
-    id           SERIAL PRIMARY KEY,
-    complaint_id INTEGER REFERENCES complaints(id) ON DELETE CASCADE,
-    field_name   VARCHAR(100),
-    old_value    TEXT,
-    new_value    TEXT,
-    changed_by   VARCHAR(20) DEFAULT 'ai_agent',
-    changed_at   TIMESTAMP   DEFAULT NOW()
-);
-
--- QA digital signatures (FDA 21 CFR Part 11)
-CREATE TABLE qa_signatures (
-    id                 SERIAL PRIMARY KEY,
-    complaint_id       INTEGER REFERENCES complaints(id) ON DELETE CASCADE,
-    signer_name        VARCHAR(255),
-    signer_role        VARCHAR(100),
-    signature_meaning  VARCHAR(255),
-    checksum_hash      VARCHAR(512),
-    comments           TEXT,
-    signed_at          TIMESTAMP DEFAULT NOW()
-);
-
--- CAPA (Corrective & Preventive Action) records
-CREATE TABLE capas (
-    id                 SERIAL PRIMARY KEY,
-    capa_number        VARCHAR(50) UNIQUE,
-    complaint_id       INTEGER REFERENCES complaints(id),
-    title              TEXT,
-    description        TEXT,
-    root_cause         TEXT,
-    severity           VARCHAR(50),
-    owner_department   VARCHAR(150),
-    assignee_name      VARCHAR(255),
-    status             VARCHAR(50) DEFAULT 'Open',
-    due_date           TIMESTAMP,
-    escalation_status  VARCHAR(100) DEFAULT 'Normal',
-    created_at         TIMESTAMP DEFAULT NOW(),
-    updated_at         TIMESTAMP DEFAULT NOW()
-);
-
--- Individual CAPA corrective/preventive action items
-CREATE TABLE capa_action_items (
-    id           SERIAL PRIMARY KEY,
-    capa_id      INTEGER REFERENCES capas(id) ON DELETE CASCADE,
-    action_type  VARCHAR(100),
-    description  TEXT,
-    assignee     VARCHAR(255),
-    due_date     TIMESTAMP,
-    status       VARCHAR(50) DEFAULT 'Pending',
-    completed_at TIMESTAMP,
-    created_at   TIMESTAMP DEFAULT NOW()
-);
-```
 
 ---
 
@@ -332,12 +206,6 @@ npm run dev
 ```
 Access the app at **`http://localhost:5173`**
 
-### 5. (Optional) Seed the Vector Store
-```bash
-cd backend
-python seed_vector_store.py
-```
-
 ---
 
 ## 🌐 Cloud Deployment Architecture
@@ -359,7 +227,6 @@ python seed_vector_store.py
 | `GET` | `/api/complaints/{id}` | Get single complaint with full relations |
 | `GET` | `/api/complaints/{id}/audit` | Get field-level audit trail |
 | `POST` | `/api/complaints/{id}/status` | Update complaint status |
-| `POST` | `/api/complaints/{id}/sign-off` | QA digital sign-off (auto-spawns CAPA if critical) |
 
 ### AI Chat & Document Upload
 | Method | Endpoint | Description |
@@ -377,12 +244,6 @@ python seed_vector_store.py
 | `POST` | `/api/capas/{id}/action-items` | Add action item to CAPA |
 | `PUT` | `/api/capas/action-items/{id}` | Toggle action item status |
 | `POST` | `/api/capas/{id}/escalate` | Escalate overdue CAPA |
-
-### Predictive Trend Detection
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/trends/predict` | Run vector similarity search + anomaly detection |
-| `GET` | `/api/trends/clusters` | Get active quality defect clusters |
 
 ### Health
 | Method | Endpoint | Description |
@@ -409,8 +270,6 @@ python-multipart>=0.0.6
 pypdf>=3.10.0
 fpdf2>=2.7.0
 Pillow>=10.0.0
-chromadb>=0.4.22
-fastembed>=0.2.0
 ```
 
 ---
