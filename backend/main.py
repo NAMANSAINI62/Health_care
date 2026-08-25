@@ -37,6 +37,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_db():
+    import os
+    hf_key = os.getenv("HF_API_KEY", "")
+    db_url = os.getenv("DATABASE_URL", "")
+    print(f"--- RENDER STARTUP DEBUG ---")
+    print(f"HF_API_KEY env exists: {bool(hf_key)} (length: {len(hf_key)})")
+    print(f"DATABASE_URL env exists: {bool(db_url)}")
+    print(f"-----------------------------")
     await init_db_tables()
 
 app.include_router(complaints.router)
