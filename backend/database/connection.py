@@ -16,6 +16,13 @@ use_sqlite = False
 Base = declarative_base()
 
 def get_engine(url: str):
+    if "postgresql" in url:
+        return create_async_engine(
+            url,
+            echo=False,
+            future=True,
+            connect_args={"prepared_statement_cache_size": 0}
+        )
     return create_async_engine(url, echo=False, future=True)
 
 # Primary Engine
