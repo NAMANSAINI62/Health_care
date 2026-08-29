@@ -25,14 +25,14 @@ INTENT_ROUTER_USER = PromptTemplate.from_template(
 LOG_COMPLAINT_SYSTEM = PromptTemplate.from_template(
     f"""
     {BASE_QMS_PERSONA}
-    Extract and intelligently infer ALL 12 fields from the user's complaint message into a JSON object:
+    Extract the 12 fields from the user's complaint message into a JSON object:
     - complaint_source (e.g. Pharmacy, Hospital, Email, Distributor, Patient)
     - customer_name (e.g. Apollo Pharmacy, CVS, MedPlus, John Doe)
     - product_name (e.g. Amoxicillin Capsules, Paracetamol Injection, Metformin 500mg)
     - product_strength (e.g. 500mg, 10 mg/mL, 250mg)
     - batch_lot_number (e.g. BMX-240602, CHG-260712A, LOT-9911)
-    - manufacturing_date (e.g. Jan 2026, 2026-01-15 — infer standard Mfg date if missing)
-    - expiry_date (e.g. Jan 2028, 2028-01-15 — infer standard 2-year Expiry date if missing)
+    - manufacturing_date (e.g. Jan 2026, 2026-01-15)
+    - expiry_date (e.g. Jan 2028, 2028-01-15)
     - affected_quantity (e.g. 48 capsules, 50 vials, 100 tablets)
     - complaint_category (e.g. Discoloration, Packaging Defect, Contamination, Labeling Error)
     - complaint_description (Detailed complaint narrative)
@@ -40,8 +40,8 @@ LOG_COMPLAINT_SYSTEM = PromptTemplate.from_template(
     - impacted_npm (Non-Product Materials e.g. PVC/PVDC Blister Foil, Type-1 Glass Vial & Rubber Stopper, HDPE Bottle)
     IMPORTANT RULES:
     1. Extract all explicitly mentioned values accurately.
-    2. For fields NOT explicitly mentioned (such as manufacturing_date, expiry_date, originating_site_block, impacted_npm),
-    INTELLIGENTLY INFER realistic pharmaceutical defaults based on the product type and complaint defect so that ALL 12 FIELDS are populated!
+    2. Do NOT guess, infer, or assume defaults for any missing fields.
+    3. If a field is NOT explicitly mentioned or cannot be directly extracted from the user text, you MUST set its value to an empty string ("").
     """
 )
 
@@ -69,20 +69,20 @@ EDIT_COMPLAINT_USER = PromptTemplate.from_template(
 
 DOC_EXTRACTION_SYSTEM = PromptTemplate.from_template(
     f"{BASE_QMS_PERSONA}\n"
-    "Extract and infer ALL 12 fields from the uploaded complaint document into a JSON object:\n"
+    "Extract the 12 fields from the uploaded complaint document into a JSON object:\n"
     "- complaint_source (e.g. Pharmacy, Hospital, Email, Distributor, Patient)\n"
     "- customer_name (e.g. Apollo Pharmacy, CVS, MedPlus)\n"
     "- product_name (e.g. Amoxicillin Capsules, Paracetamol Injection)\n"
     "- product_strength (e.g. 500mg, 10 mg/mL)\n"
     "- batch_lot_number (e.g. BMX-240602, CHG-260712A)\n"
-    "- manufacturing_date (e.g. Jan 2026 — infer standard Mfg date if missing)\n"
-    "- expiry_date (e.g. Jan 2028 — infer standard 2-year Expiry date if missing)\n"
+    "- manufacturing_date (e.g. Jan 2026)\n"
+    "- expiry_date (e.g. Jan 2028)\n"
     "- affected_quantity (e.g. 48 capsules, 100 vials)\n"
     "- complaint_category (e.g. Discoloration, Packaging Defect, Contamination)\n"
     "- complaint_description (Detailed summary of document complaint)\n"
     "- originating_site_block (e.g. Block A - Sterile Injectables, Block B - Solid Oral Dosage)\n"
     "- impacted_npm (Non-Product Materials e.g. PVC Blister Foil, Glass Vial, Rubber Stopper)\n\n"
-    "IMPORTANT: Infer realistic defaults for any missing fields so that ALL 12 FIELDS are populated."
+    "IMPORTANT: Do NOT infer or assume defaults. If a field is not explicitly present in the document text, set its value to an empty string (\"\")."
 )
 
 DOC_EXTRACTION_USER = PromptTemplate.from_template(
