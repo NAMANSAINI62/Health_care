@@ -67,7 +67,7 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
-    const savedId = complaintId || localStorage.getItem('active_complaint_id');
+    const savedId = complaintId || sessionStorage.getItem('active_complaint_id');
     if (savedId) {
       loadFullComplaint(parseInt(savedId, 10));
     }

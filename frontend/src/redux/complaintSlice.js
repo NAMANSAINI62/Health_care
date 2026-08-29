@@ -22,8 +22,8 @@ const initialRiskAssessment = {
   likely_root_cause: 'N/A',
 };
 
-const savedComplaintId = localStorage.getItem('active_complaint_id')
-  ? parseInt(localStorage.getItem('active_complaint_id'), 10)
+const savedComplaintId = sessionStorage.getItem('active_complaint_id')
+  ? parseInt(sessionStorage.getItem('active_complaint_id'), 10)
   : null;
 
 const complaintSlice = createSlice({
@@ -43,7 +43,7 @@ const complaintSlice = createSlice({
       const { complaint_id, form_data, risk_assessment, status, scanned_image_preview, detected_defects } = action.payload;
       if (complaint_id) {
         state.complaintId = complaint_id;
-        localStorage.setItem('active_complaint_id', complaint_id.toString());
+        sessionStorage.setItem('active_complaint_id', complaint_id.toString());
       }
       if (form_data) {
         state.formData = { ...state.formData, ...form_data };
@@ -75,7 +75,7 @@ const complaintSlice = createSlice({
     },
     resetForm: (state) => {
       state.complaintId = null;
-      localStorage.removeItem('active_complaint_id');
+      sessionStorage.removeItem('active_complaint_id');
       state.formData = initialFormData;
       state.riskAssessment = initialRiskAssessment;
       state.status = 'Pending Triage';
