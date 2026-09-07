@@ -1,15 +1,17 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_llm_json
-from agents.prompts import RISK_ASSESSMENT_SYSTEM, RISK_ASSESSMENT_USER  # Import templates
+from agents.llm import create_lcel_json_chain
+from agents.prompts import RISK_ASSESSMENT_SYSTEM
+
+# Chain for QMS Risk Assessment
+risk_assessment_chain = create_lcel_json_chain(
+    system_prompt_str=RISK_ASSESSMENT_SYSTEM.template,
+    user_prompt_str="Complaint Form Details:\n{fields}"
+)
 
 def risk_assessment_node(state: ComplaintAgentState) -> ComplaintAgentState:
     """Node 3: Shared reasoning step evaluating full current complaint fields to calculate Severity, Suggested Action, Narrative, and Likely Root Cause."""
     fields = state.get("merged_fields", {}) or {}
-
-    system_prompt = RISK_ASSESSMENT_SYSTEM.format()
-    prompt = RISK_ASSESSMENT_USER.format(fields=fields)
-    
-    risk_res = call_llm_json(prompt, system_prompt)
+    risk_res = risk_assessment_chain.invoke({"fields": fields})
 
     cleaned_risk = {
         "severity": str(risk_res.get("severity", "Major")),
@@ -33,3 +35,4 @@ def risk_assessment_node(state: ComplaintAgentState) -> ComplaintAgentState:
         state["status"] = "In Progress"
 
     return state
+

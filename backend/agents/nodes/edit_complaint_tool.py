@@ -1,17 +1,20 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_llm_json
-from agents.prompts import EDIT_COMPLAINT_SYSTEM, EDIT_COMPLAINT_USER  # Import templates
+from agents.llm import create_lcel_json_chain
+from agents.prompts import EDIT_COMPLAINT_SYSTEM
 from typing import Dict, Any
+
+# Chain for Edit Complaint Extraction
+edit_complaint_chain = create_lcel_json_chain(
+    system_prompt_str=EDIT_COMPLAINT_SYSTEM.template,
+    user_prompt_str="Existing Complaint Fields:\n{existing}\n\nUser Edit Request:\n'{user_msg}'"
+)
 
 def edit_complaint_tool_node(state: ComplaintAgentState) -> ComplaintAgentState:
     """Node 2B: Extracts partial updates from prompt, diffs against existing DB fields, and merges while PRESERVING untouched fields."""
     user_msg = state.get("user_message", "")
     existing = state.get("existing_fields", {}) or {}
 
-    system_prompt = EDIT_COMPLAINT_SYSTEM.format()
-    prompt = EDIT_COMPLAINT_USER.format(existing=existing, user_msg=user_msg)
-    
-    res = call_llm_json(prompt, system_prompt)
+    res = edit_complaint_chain.invoke({"existing": existing, "user_msg": user_msg})
     updates: Dict[str, Any] = res.get("updated_fields", {})
 
     merged = existing.copy()
@@ -29,3 +32,4 @@ def edit_complaint_tool_node(state: ComplaintAgentState) -> ComplaintAgentState:
     state["changed_fields"] = changed
     state["tool_used"] = "edit_complaint"
     return state
+

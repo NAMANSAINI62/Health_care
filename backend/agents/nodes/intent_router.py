@@ -1,6 +1,12 @@
 from agents.state import ComplaintAgentState
-from agents.llm import call_llm_json
+from agents.llm import create_lcel_json_chain
 from agents.prompts import INTENT_ROUTER_SYSTEM, INTENT_ROUTER_USER
+
+# Chain for Intent Classification
+intent_router_chain = create_lcel_json_chain(
+    system_prompt_str=INTENT_ROUTER_SYSTEM.template,
+    user_prompt_str="Existing Complaint ID: {complaint_id}\nUser Input: {user_msg}"
+)
 
 def intent_router_node(state: ComplaintAgentState) -> ComplaintAgentState:
     """Node 1: Classifies the user message into log_complaint, edit_complaint, or document_extraction."""
@@ -12,10 +18,7 @@ def intent_router_node(state: ComplaintAgentState) -> ComplaintAgentState:
         state["intent"] = "document_extraction"
         return state
 
-    system_prompt = INTENT_ROUTER_SYSTEM.format()
-    prompt = INTENT_ROUTER_USER.format(complaint_id=complaint_id, user_msg=user_msg)
-
-    result = call_llm_json(prompt, system_prompt)
+    result = intent_router_chain.invoke({"complaint_id": complaint_id, "user_msg": user_msg})
     intent = result.get("intent", "log_complaint")
 
     if complaint_id and intent == "log_complaint":
@@ -23,6 +26,6 @@ def intent_router_node(state: ComplaintAgentState) -> ComplaintAgentState:
         if any(k in user_msg.lower() for k in update_keywords):
             intent = "edit_complaint"
 
-
     state["intent"] = intent
     return state
+
