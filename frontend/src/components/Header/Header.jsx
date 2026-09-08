@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShieldCheck, PlusCircle, History, FileText, ClipboardCheck } from 'lucide-react';
-import StatusPill from '../StatusPill/StatusPill';
 
 export const Header = ({ 
   activeTab, 
@@ -49,8 +48,6 @@ export const Header = ({
           </>
         )}
 
-        {activeTab === 'triage' && <StatusPill status={status} />}
-
         <button className="btn-pill-primary" onClick={onNewComplaint}>
           <PlusCircle size={15} /> New Complaint
         </button>
@@ -60,3 +57,4 @@ export const Header = ({
 };
 
 export default Header;
+
