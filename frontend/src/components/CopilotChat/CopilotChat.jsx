@@ -74,10 +74,21 @@ export const CopilotChat = () => {
       }));
     } catch (error) {
       console.error('Error calling Copilot API:', error);
+      let errorMessage = '⚠️ An error occurred while contacting the AI agent service.';
+      if (error.response) {
+        if (error.response.status === 429) {
+          errorMessage = '⚠️ API Rate limit reached (5 requests/min). Please wait 1 minute before sending your next message.';
+        } else if (error.response.data?.detail) {
+          errorMessage = `⚠️ ${error.response.data.detail}`;
+        }
+      } else if (error.message) {
+        errorMessage = `⚠️ Network error: ${error.message}`;
+      }
+
       dispatch(addMessage({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '⚠️ An error occurred while contacting the AI agent service.',
+        content: errorMessage,
         tool_used: null
       }));
     } finally {
@@ -122,10 +133,21 @@ export const CopilotChat = () => {
       }));
     } catch (error) {
       console.error('Error uploading file:', error);
+      let errorMessage = '⚠️ Document extraction failed. Please ensure file is PDF, TXT, EML, DOC, or DOCX.';
+      if (error.response) {
+        if (error.response.status === 429) {
+          errorMessage = '⚠️ API Rate limit reached (5 requests/min). Please wait 1 minute before uploading another document.';
+        } else if (error.response.data?.detail) {
+          errorMessage = `⚠️ ${error.response.data.detail}`;
+        }
+      } else if (error.message) {
+        errorMessage = `⚠️ Network error: ${error.message}`;
+      }
+
       dispatch(addMessage({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '⚠️ Document extraction failed. Please ensure file is PDF, TXT, EML, DOC, or DOCX.',
+        content: errorMessage,
         tool_used: null
       }));
     } finally {
