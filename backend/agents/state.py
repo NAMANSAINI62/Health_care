@@ -5,6 +5,7 @@ class ComplaintAgentState(BaseModel):
     complaint_id: Optional[int] = None
     user_message: str = ""
     document_text: Optional[str] = None
+    structural_chunks: Optional[Any] = None
     intent: Optional[str] = None
     existing_fields: Dict[str, Any] = Field(default_factory=dict)
     extracted_fields: Dict[str, Any] = Field(default_factory=dict)

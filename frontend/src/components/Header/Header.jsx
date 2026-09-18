@@ -16,7 +16,7 @@ export const Header = ({
           <ShieldCheck size={20} />
         </div>
         <div>
-          <div className="brand-name">Pharma QMS Complaint Hub</div>
+          <div className="brand-name">Pharma Complaint</div>
         </div>
 
         {/* View Navigation Tabs */}

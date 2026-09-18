@@ -177,20 +177,15 @@ export const AuditLogModal = ({ complaintId, isOpen, onClose }) => {
       <div className="modal-card audit-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-              <History size={20} />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-800">
-                Audit Trail & History Log — Complaint #{complaintId}
-              </h3>
-              <p className="text-xs text-slate-500">
-                Grouped timeline of AI extraction & user modification events
-              </p>
-            </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-800">
+              Audit Trail & History Log — Complaint #{complaintId}
+            </h3>
+            <p className="text-xs text-slate-500">
+              Grouped timeline of AI extraction & user modification events
+            </p>
           </div>
-          <button onClick={onClose} className="modal-close-btn">
+          <button onClick={onClose} className="modal-close-btn" aria-label="Close modal">
             <X size={18} />
           </button>
         </div>

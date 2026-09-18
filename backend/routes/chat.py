@@ -13,7 +13,7 @@ from schemas.complaint_schema import (
 )
 from agents.graph import complaint_agent_graph
 from agents.state import ComplaintAgentState
-
+from agents.utils.document_processor import process_document_structurally
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,6 @@ async def chat_with_copilot(
 
         await db.commit()
 
-
         form_data_obj = ComplaintFormData(**{f: merged.get(f, "") for f in FORM_FIELDS})
         risk_obj = RiskAssessmentData(
             severity=risk.get("severity", "Minor"),
@@ -223,10 +222,15 @@ async def upload_document(
             if complaint_obj:
                 existing_fields = complaint_to_dict(complaint_obj)
 
+        # Structure based chunking & local embeddings
+        processed_doc = process_document_structurally(extracted_text)
+        structural_chunks = processed_doc.get("structural_chunks", [])
+
         initial_state: ComplaintAgentState = {
             "complaint_id": complaint_id,
             "user_message": f"Extract complaint details from document: {filename}",
             "document_text": extracted_text,
+            "structural_chunks": structural_chunks,
             "intent": "document_extraction",
             "existing_fields": existing_fields,
             "extracted_fields": {},
