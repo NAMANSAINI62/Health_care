@@ -1,16 +1,9 @@
 import re
 import logging
 from typing import List, Dict, Any
-from langchain_huggingface import HuggingFaceEmbeddings
 
 logger = logging.getLogger(__name__)
 
-# Local HuggingFace embedding model load kar rahe hain
-embeddings_model = HuggingFaceEmbeddings(
-    model_name="BAAI/bge-small-en-v1.5",
-    model_kwargs={'device': 'cpu'},
-    encode_kwargs={'normalize_embeddings': True}
-)
 
 def split_document_structurally(raw_text: str) -> List[str]:
     """
@@ -41,25 +34,17 @@ def split_document_structurally(raw_text: str) -> List[str]:
 
     return chunks
 
-def generate_local_embeddings(chunks: List[str]) -> List[List[float]]:
-    """
-    Har structural chunk ke liye HuggingFace bge-small model se local vector numbers banata hai.
-    """
-    if not chunks:
-        return []
-    return embeddings_model.embed_documents(chunks)
 
 def process_document_structurally(raw_text: str) -> Dict[str, Any]:
     """
-    Main function: Plain text leta hai aur clean structural chunks + vectors ka dictionary return karta hai.
+    Main function: Plain text leta hai aur clean structural chunks ka dictionary return karta hai.
     """
     chunks = split_document_structurally(raw_text)
-    embeddings = generate_local_embeddings(chunks)
     
     return {
         "raw_text": raw_text,
         "structural_chunks": chunks,
         "chunk_count": len(chunks),
-        "embeddings_count": len(embeddings),
-        "has_embeddings": len(embeddings) > 0
     }
+
+
