@@ -15,4 +15,5 @@ pypdf>=3.10.0
 fpdf2>=2.7.0
 Pillow>=10.0.0
 langchain-huggingface
+sentence-transformers
 
