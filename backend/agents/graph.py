@@ -27,10 +27,8 @@ workflow.add_node("document_extraction_node", document_extraction_tool_node)
 workflow.add_node("risk_assessment_node", risk_assessment_node)
 workflow.add_node("response_formatter_node", response_formatter_node)
 
-# Set Entry Point
 workflow.set_entry_point("intent_router")
 
-# Add Conditional Edges from Intent Router
 workflow.add_conditional_edges(
     "intent_router",
     route_intent,

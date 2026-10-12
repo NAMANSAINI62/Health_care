@@ -10,44 +10,48 @@ from langchain_core.runnables import Runnable
 logger = logging.getLogger(__name__)
 
 def get_llm_model():
-    """Returns the primary LLM model. Uses Gemini first, Groq as fallback."""
-
-    # Tier 1: Google Gemini (Primary)
-    gemini_key = (settings.GEMINI_API_KEY or "").strip()
-    if gemini_key:
-        try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            model_name = getattr(settings, "GEMINI_MODEL", "gemini-flash-latest")
-            logger.info(f"Using Google Gemini model: {model_name}")
-            return ChatGoogleGenerativeAI(
-                model=model_name,
-                google_api_key=gemini_key,
-                temperature=0.1
-            )
-        except Exception as e:
-            logger.warning(f"Gemini init failed, falling back to Groq: {e}")
-
-    # Tier 2: Groq (Fallback)
     groq_key = (settings.GROQ_API_KEY or "").strip()
+    gemini_key = (settings.GEMINI_API_KEY or "").strip()
+
+    groq_llm = None
     if groq_key:
         try:
             from langchain_groq import ChatGroq
-            model_name = getattr(settings, "GROQ_MODEL_PRIMARY", "qwen/qwen3.8-27b")
-            logger.info(f"Using Groq model: {model_name}")
-            return ChatGroq(
+            groq_model = getattr(settings, "GROQ_MODEL_PRIMARY", "qwen/qwen3.8-27b")
+            groq_llm = ChatGroq(
                 api_key=groq_key,
-                model_name=model_name,
+                model_name=groq_model,
                 temperature=0.1
             )
         except Exception as e:
-            logger.warning(f"Groq init failed: {e}")
+            logger.warning(f"Groq setup failed: {e}")
+
+    gemini_llm = None
+    if gemini_key:
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            gemini_model = getattr(settings, "GEMINI_MODEL", "gemini-flash-lite-latest")
+            gemini_llm = ChatGoogleGenerativeAI(
+                model=gemini_model,
+                google_api_key=gemini_key,
+                temperature=0.1,
+                max_retries=1
+            )
+        except Exception as e:
+            logger.warning(f"Gemini setup failed: {e}")
+
+    if groq_llm and gemini_llm:
+        return groq_llm.with_fallbacks([gemini_llm])
+    elif groq_llm:
+        return groq_llm
+    elif gemini_llm:
+        return gemini_llm
 
     raise RuntimeError(
-        "No working AI API key found! Please configure GEMINI_API_KEY or GROQ_API_KEY in backend/.env"
+        "No working AI API key found! Please configure GROQ_API_KEY or GEMINI_API_KEY in backend/.env"
     )
 
 def create_lcel_json_chain(system_prompt_str: str, user_prompt_str: str) -> Runnable:
-    """Builds a composable LCEL chain (Prompt | Model | JsonOutputParser)."""
     guarded_system = (
         f"{system_prompt_str}\n\n"
         "SECURITY INSTRUCTIONS:\n"
@@ -67,6 +71,5 @@ def create_lcel_json_chain(system_prompt_str: str, user_prompt_str: str) -> Runn
     return prompt | chat_model | parser
 
 def call_llm_json(prompt: str, system_prompt: str, model: Optional[str] = None) -> Dict[str, Any]:
-    """Legacy helper function delegating to create_lcel_json_chain."""
     chain = create_lcel_json_chain(system_prompt, "{user_prompt}")
     return chain.invoke({"user_prompt": prompt})

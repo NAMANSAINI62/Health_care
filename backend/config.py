@@ -12,7 +12,7 @@ class Settings:
         "DATABASE_URL",
         "postgresql+asyncpg://postgres:postgrespassword@localhost:5400/aivoa_complaints"
     )
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
     GROQ_MODEL_PRIMARY: str = os.getenv("GROQ_MODEL_PRIMARY", "qwen/qwen3.8-27b")
     GROQ_MODEL_CONTEXT: str = os.getenv("GROQ_MODEL_CONTEXT", "qwen/qwen3.8-27b")
 
