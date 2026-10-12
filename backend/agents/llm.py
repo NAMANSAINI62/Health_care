@@ -10,7 +10,9 @@ from langchain_core.runnables import Runnable
 logger = logging.getLogger(__name__)
 
 def get_llm_model():
-    """Returns the primary LLM model. Prioritizes Gemini, then Groq, then HuggingFace."""
+    """Returns the primary LLM model. Uses Gemini first, Groq as fallback."""
+
+    # Tier 1: Google Gemini (Primary)
     gemini_key = (settings.GEMINI_API_KEY or "").strip()
     if gemini_key:
         try:
@@ -23,13 +25,14 @@ def get_llm_model():
                 temperature=0.1
             )
         except Exception as e:
-            logger.warning(f"Failed to initialize ChatGoogleGenerativeAI: {e}")
+            logger.warning(f"Gemini init failed, falling back to Groq: {e}")
 
+    # Tier 2: Groq (Fallback)
     groq_key = (settings.GROQ_API_KEY or "").strip()
     if groq_key:
         try:
             from langchain_groq import ChatGroq
-            model_name = getattr(settings, "GROQ_MODEL_PRIMARY", "llama-3.3-70b-versatile")
+            model_name = getattr(settings, "GROQ_MODEL_PRIMARY", "qwen/qwen3.8-27b")
             logger.info(f"Using Groq model: {model_name}")
             return ChatGroq(
                 api_key=groq_key,
@@ -37,29 +40,10 @@ def get_llm_model():
                 temperature=0.1
             )
         except Exception as e:
-            logger.warning(f"Failed to initialize ChatGroq: {e}")
-
-    hf_key = (settings.HF_API_KEY or "").strip()
-    if hf_key:
-        try:
-            from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-            selected_model = getattr(settings, "HF_MODEL_PRIMARY", "Qwen/Qwen2.5-Coder-32B-Instruct")
-            logger.info(f"Using HuggingFace model: {selected_model}")
-            llm = HuggingFaceEndpoint(
-                repo_id=selected_model,
-                task="text-generation",
-                huggingfacehub_api_token=hf_key,
-                max_new_tokens=1500,
-                do_sample=False,
-                timeout=30,
-                model_kwargs={"response_format": {"type": "json_object"}}
-            )
-            return ChatHuggingFace(llm=llm)
-        except Exception as e:
-            logger.warning(f"Failed to initialize HuggingFace: {e}")
+            logger.warning(f"Groq init failed: {e}")
 
     raise RuntimeError(
-        "No working AI API key found! Please configure GEMINI_API_KEY, GROQ_API_KEY, or HF_API_KEY in backend/.env"
+        "No working AI API key found! Please configure GEMINI_API_KEY or GROQ_API_KEY in backend/.env"
     )
 
 def create_lcel_json_chain(system_prompt_str: str, user_prompt_str: str) -> Runnable:
