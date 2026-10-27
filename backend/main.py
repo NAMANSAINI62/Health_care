@@ -1,21 +1,30 @@
 import os
 import sys
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
 # Allow running as `python backend/main.py` from project root
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from database.connection import init_db_tables
-from routes import complaints, chat, capa
+from routes import complaints, chat
+from routes.auth_routes import router as auth_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: ensure all DB tables (users, complaints, etc.) exist
+    await init_db_tables()
+    yield
 
 app = FastAPI(
     title="Pharma QMS Complaint API",
-    description="Secure Backend API for Customer Complaint Management System in Pharma QMS",
-    version="1.0.0"
+    description="Secure Backend API for Customer Complaint Management System",
+    version="1.0.0",
+    lifespan=lifespan,
 )
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -35,22 +44,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_db():
-    import os
-    gemini_key = os.getenv("GEMINI_API_KEY", "")
-    groq_key = os.getenv("GROQ_API_KEY", "")
-    db_url = os.getenv("DATABASE_URL", "")
-    print(f"--- RENDER STARTUP DEBUG ---")
-    print(f"GEMINI_API_KEY env exists: {bool(gemini_key)} (length: {len(gemini_key)})")
-    print(f"GROQ_API_KEY env exists:   {bool(groq_key)} (length: {len(groq_key)})")
-    print(f"DATABASE_URL env exists:   {bool(db_url)}")
-    print(f"-----------------------------")
-    await init_db_tables()
-
 app.include_router(complaints.router)
 app.include_router(chat.router)
-app.include_router(capa.router)
+app.include_router(auth_router)
 
 
 @app.get("/health")

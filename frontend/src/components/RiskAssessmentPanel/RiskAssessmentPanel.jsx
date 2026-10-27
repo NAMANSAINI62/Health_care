@@ -1,13 +1,10 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { ShieldAlert, Activity, Lightbulb, ClipboardCheck, ArrowUpRight } from 'lucide-react';
+import { ShieldAlert, Activity, Lightbulb } from 'lucide-react';
 
-export const RiskAssessmentPanel = ({ onOpenCapaTab, activeComplaintFull }) => {
-  const { riskAssessment, status, complaintId } = useSelector((state) => state.complaint);
+export const RiskAssessmentPanel = () => {
+  const { riskAssessment } = useSelector((state) => state.complaint);
   const severity = (riskAssessment.severity || 'Minor').toLowerCase();
-
-  const capas = activeComplaintFull?.capas || [];
-  const linkedCapa = capas.length > 0 ? capas[0] : null;
 
   return (
     <div className="risk-card">
@@ -20,22 +17,6 @@ export const RiskAssessmentPanel = ({ onOpenCapaTab, activeComplaintFull }) => {
           Severity: {riskAssessment.severity || 'Minor'}
         </span>
       </div>
-
-      {/* Linked CAPA Badge */}
-      {linkedCapa && (
-        <div className="linked-capa-banner" onClick={onOpenCapaTab}>
-          <div className="flex items-center gap-2">
-            <ClipboardCheck size={18} className="text-sky-600" />
-            <div>
-              <strong>Linked CAPA Task Spawened: {linkedCapa.capa_number}</strong>
-              <div className="text-xs text-sky-800">
-                Department: {linkedCapa.owner_department} • Status: {linkedCapa.status}
-              </div>
-            </div>
-          </div>
-          <ArrowUpRight size={16} className="text-sky-600" />
-        </div>
-      )}
 
       <div className="risk-block">
         <div className="risk-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

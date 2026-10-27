@@ -12,11 +12,8 @@ venv/
 __pycache__/
 *.pyc
 
-# Local Databases (SQLite & Vector Stores)
+# Local Database files
 *.db
-*.sqlite
-*.sqlite3
-chroma_db_store/
 
 # Builds & Outputs
 dist/
@@ -28,12 +25,8 @@ build/
 .DS_Store
 Thumbs.db
 
-# Local Antigravity Agent & Media File Exclusions
+# Local Antigravity Agent
 .agents/
-.antigravityignore
+
+# Uploaded documents (keep PDFs out of repo)
 *.pdf
-*.txt
-*.md
-
-
-

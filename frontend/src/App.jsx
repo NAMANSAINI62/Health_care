@@ -6,13 +6,11 @@ import RiskAssessmentPanel from './components/RiskAssessmentPanel/RiskAssessment
 
 import CopilotChat from './components/CopilotChat/CopilotChat';
 import AuditLogModal from './components/AuditLogModal/AuditLogModal';
-import CapaDashboard from './components/CapaDashboard/CapaDashboard';
 import { resetForm, setComplaintState } from './redux/complaintSlice';
 import { clearChat, setMessages } from './redux/chatSlice';
 import { fetchComplaintById, updateComplaintStatus } from './api/complaintsApi';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('triage');
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
   const [activeComplaintFull, setActiveComplaintFull] = useState(null);
   const [rightPanelWidth, setRightPanelWidth] = useState(480);
@@ -108,57 +106,38 @@ function App() {
     dispatch(resetForm());
     dispatch(clearChat());
     setActiveComplaintFull(null);
-    setActiveTab('triage');
     if (leftPanelRef.current) {
       leftPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-
-  const handleSelectComplaintFromCapa = (cId) => {
-    setActiveTab('triage');
-    loadFullComplaint(cId);
-  };
-
   return (
     <div className="app-shell">
       <Header
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
         complaintId={complaintId}
         status={status}
         onNewComplaint={handleNewComplaint}
         onOpenAuditModal={() => setIsAuditModalOpen(true)}
       />
 
-      {activeTab === 'triage' ? (
-        <main className="main-layout-resizable">
-          <div className="left-panel" ref={leftPanelRef}>
-            <ComplaintForm />
-            <RiskAssessmentPanel
-              activeComplaintFull={activeComplaintFull}
-              onOpenCapaTab={() => setActiveTab('capa')}
-            />
+      <main className="main-layout-resizable">
+        <div className="left-panel" ref={leftPanelRef}>
+          <ComplaintForm />
+          <RiskAssessmentPanel />
+        </div>
 
-          </div>
+        <div
+          className={`resizer-handle ${isResizing ? 'is-resizing' : ''}`}
+          onMouseDown={handleMouseDown}
+          title="Drag to resize left & right panels"
+        >
+          <div className="resizer-line" />
+        </div>
 
-          <div
-            className={`resizer-handle ${isResizing ? 'is-resizing' : ''}`}
-            onMouseDown={handleMouseDown}
-            title="Drag to resize left & right panels"
-          >
-            <div className="resizer-line" />
-          </div>
-
-          <div style={{ width: `${rightPanelWidth}px`, minWidth: `${rightPanelWidth}px` }}>
-            <CopilotChat />
-          </div>
-        </main>
-      ) : (
-        <main className="main-layout-single">
-          <CapaDashboard onSelectComplaint={handleSelectComplaintFromCapa} />
-        </main>
-      )}
+        <div style={{ width: `${rightPanelWidth}px`, minWidth: `${rightPanelWidth}px` }}>
+          <CopilotChat />
+        </div>
+      </main>
 
       <AuditLogModal
         complaintId={complaintId}

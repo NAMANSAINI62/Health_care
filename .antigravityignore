@@ -1,0 +1,13 @@
+# Token Optimization: Ignore heavy generated/binary files and build artifacts
+.venv/
+node_modules/
+dist/
+build/
+__pycache__/
+*.db
+*.sqlite
+*.sqlite3
+vector_db/
+*.log
+.git/
+.DS_Store

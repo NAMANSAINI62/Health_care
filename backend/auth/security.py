@@ -4,7 +4,7 @@ from typing import Optional
 from jose import jwt, JWTError # it is used to encode and decode tokens and provide the valid errors.
 from passlib.context import CryptContext # it is a class which manage password hashing
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "fallback-dev-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440 # 60min * 24hr = 1440 min
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # it automatically flags old algorithms as outdated if I add a new algorithms later.

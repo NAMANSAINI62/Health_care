@@ -30,7 +30,7 @@ export const ComplaintForm = () => {
           <FileText size={18} className="text-blue-600" />
           Customer Complaint Form
         </div>
-        <div className="ocr-badge" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className="ai-badge" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Sparkles size={12} className="text-emerald-600" />
           AI Extraction Active
         </div>

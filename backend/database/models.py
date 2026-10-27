@@ -26,35 +26,6 @@ class Complaint(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-class CAPA(Base):
-    __tablename__ = "capas"
-
-    id = Column(Integer, primary_key=True, index=True)
-    capa_number = Column(String(100), unique=True, index=True, nullable=False)
-    complaint_id = Column(Integer, ForeignKey("complaints.id", ondelete="SET NULL"), nullable=True)
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    root_cause = Column(Text, nullable=True)
-    severity = Column(String(50), nullable=False, default="Major")  # Critical, Major, Minor
-    owner_department = Column(String(150), nullable=False, default="Quality Assurance")  # e.g., Packaging, Sterile Block B, QC
-    assignee_name = Column(String(255), nullable=True)
-    status = Column(String(50), nullable=False, default="Open")  # Open, In Progress, Under Review, Completed, Overdue
-    due_date = Column(DateTime(timezone=True), nullable=True)
-    escalation_status = Column(String(50), nullable=False, default="Normal")  # Normal, Escalated - Level 1, Escalated - Level 2
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-class CAPAActionItem(Base):
-    __tablename__ = "capa_action_items"
-
-    id = Column(Integer, primary_key=True, index=True)
-    capa_id = Column(Integer, ForeignKey("capas.id", ondelete="CASCADE"), nullable=False)
-    action_type = Column(String(50), nullable=False, default="Corrective Action")  # Corrective Action, Preventive Action
-    description = Column(Text, nullable=False)
-    assignee = Column(String(255), nullable=True)
-    due_date = Column(DateTime(timezone=True), nullable=True)
-    status = Column(String(50), nullable=False, default="Pending")  # Pending, In Progress, Completed
-    completed_at = Column(DateTime(timezone=True), nullable=True)
 
 class ComplaintChatMessage(Base):
     __tablename__ = "complaint_chat_messages"
@@ -80,11 +51,10 @@ class ComplaintFieldAudit(Base):
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True, index= True)
-    username = Column(String(100), index =True, nullable = False)
-    email = Column(String(50), unique=True, nullable=False)
-    hashed_passward = Column(String(50), nullable=False)
-    roles = Column(String(25), nullable=False, default='qa_specialist')
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), index=True, nullable=False, unique=True)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False, default="operator")
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    phone_no = Column(Integer, nullable=False, unique=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

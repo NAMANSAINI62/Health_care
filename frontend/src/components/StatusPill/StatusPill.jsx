@@ -5,7 +5,6 @@ export const StatusPill = ({ status }) => {
   if (status === 'Ready to Commit') pillClass = 'status-pill ready';
   if (status === 'Committed' || status === 'QA Approved') pillClass = 'status-pill committed';
   if (status === 'QA Review') pillClass = 'status-pill hitl';
-  if (status === 'CAPA Initiated') pillClass = 'status-pill capa';
 
   return (
     <div className={pillClass}>

@@ -3,11 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from datetime import datetime, timedelta
-
 from database.connection import get_db
-from database.models import Complaint, ComplaintChatMessage, ComplaintFieldAudit, CAPA, CAPAActionItem
+from database.models import Complaint, ComplaintChatMessage, ComplaintFieldAudit
 from schemas.complaint_schema import ComplaintRead, AuditLogRead, ChatMessageRead
-from routes.capa import generate_capa_number
 
 router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
@@ -28,20 +26,8 @@ async def list_complaints(db: AsyncSession = Depends(get_db)):
         audit_res = await db.execute(audit_stmt)
         audit_logs = audit_res.scalars().all()
 
-        capa_stmt = select(CAPA).filter(CAPA.complaint_id == c.id).order_by(CAPA.updated_at.desc())
-        capa_res = await db.execute(capa_stmt)
-        capas = capa_res.scalars().all()
-
-        capas_with_items = []
-        for capa in capas:
-            item_stmt = select(CAPAActionItem).filter(CAPAActionItem.capa_id == capa.id)
-            item_res = await db.execute(item_stmt)
-            capa.action_items = item_res.scalars().all()
-            capas_with_items.append(capa)
-
         c.chat_messages = chat_messages
         c.audit_logs = audit_logs
-        c.capas = capas_with_items
         response.append(c)
 
     return response
@@ -63,18 +49,6 @@ async def get_complaint(complaint_id: int, db: AsyncSession = Depends(get_db)):
     audit_res = await db.execute(audit_stmt)
     complaint.audit_logs = audit_res.scalars().all()
 
-    capa_stmt = select(CAPA).filter(CAPA.complaint_id == complaint.id).order_by(CAPA.updated_at.desc())
-    capa_res = await db.execute(capa_stmt)
-    capas = capa_res.scalars().all()
-
-    capas_with_items = []
-    for capa in capas:
-        item_stmt = select(CAPAActionItem).filter(CAPAActionItem.capa_id == capa.id)
-        item_res = await db.execute(item_stmt)
-        capa.action_items = item_res.scalars().all()
-        capas_with_items.append(capa)
-
-    complaint.capas = capas_with_items
     return complaint
 
 @router.get("/{complaint_id}/audit", response_model=List[AuditLogRead])
@@ -90,7 +64,7 @@ async def update_complaint_status(complaint_id: int, status: str, db: AsyncSessi
     complaint = result.scalar_one_or_none()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    complaint.status = status
+    complaint.status = status  # type: ignore[assignment]
     await db.commit()
     await db.refresh(complaint)
     return {"id": complaint.id, "status": complaint.status}

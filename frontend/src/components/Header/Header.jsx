@@ -1,9 +1,7 @@
 import React from 'react';
-import { ShieldCheck, PlusCircle, History, FileText, ClipboardCheck } from 'lucide-react';
+import { ShieldCheck, PlusCircle, History, FileText } from 'lucide-react';
 
 export const Header = ({ 
-  activeTab, 
-  onTabChange, 
   complaintId, 
   status, 
   onNewComplaint, 
@@ -18,26 +16,10 @@ export const Header = ({
         <div>
           <div className="brand-name">Pharma Complaint</div>
         </div>
-
-        {/* View Navigation Tabs */}
-        <nav className="header-nav-tabs">
-          <button 
-            className={`nav-tab-btn ${activeTab === 'triage' ? 'active' : ''}`}
-            onClick={() => onTabChange('triage')}
-          >
-            <FileText size={15} /> Complaint Triage & Form
-          </button>
-          <button 
-            className={`nav-tab-btn ${activeTab === 'capa' ? 'active' : ''}`}
-            onClick={() => onTabChange('capa')}
-          >
-            <ClipboardCheck size={15} /> CAPA Module
-          </button>
-        </nav>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {complaintId && activeTab === 'triage' && (
+        {complaintId && (
           <>
             <span className="complaint-id-tag">
               Complaint #{complaintId}
