@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, func
+from datetime import datetime
 from database.connection import Base
 
 class Complaint(Base):
@@ -26,10 +26,6 @@ class Complaint(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    chat_messages = relationship("ComplaintChatMessage", back_populates="complaint", cascade="all, delete-orphan")
-    audit_logs = relationship("ComplaintFieldAudit", back_populates="complaint", cascade="all, delete-orphan")
-    capas = relationship("CAPA", back_populates="complaint", cascade="all, delete-orphan")
-
 class CAPA(Base):
     __tablename__ = "capas"
 
@@ -48,9 +44,6 @@ class CAPA(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    complaint = relationship("Complaint", back_populates="capas")
-    action_items = relationship("CAPAActionItem", back_populates="capa", cascade="all, delete-orphan")
-
 class CAPAActionItem(Base):
     __tablename__ = "capa_action_items"
 
@@ -63,8 +56,6 @@ class CAPAActionItem(Base):
     status = Column(String(50), nullable=False, default="Pending")  # Pending, In Progress, Completed
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
-    capa = relationship("CAPA", back_populates="action_items")
-
 class ComplaintChatMessage(Base):
     __tablename__ = "complaint_chat_messages"
 
@@ -74,8 +65,6 @@ class ComplaintChatMessage(Base):
     content = Column(Text, nullable=False)
     tool_used = Column(String(50), nullable=True)  # 'log_complaint', 'edit_complaint', 'document_extraction', etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    complaint = relationship("Complaint", back_populates="chat_messages")
 
 class ComplaintFieldAudit(Base):
     __tablename__ = "complaint_field_audit"
@@ -88,4 +77,14 @@ class ComplaintFieldAudit(Base):
     changed_by = Column(String(20), default="ai_agent")
     changed_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    complaint = relationship("Complaint", back_populates="audit_logs")
+class User(Base):
+    __tablename__ = "users"
+
+    user_id = Column(Integer, primary_key=True, index= True)
+    username = Column(String(100), index =True, nullable = False)
+    email = Column(String(50), unique=True, nullable=False)
+    hashed_passward = Column(String(50), nullable=False)
+    roles = Column(String(25), nullable=False, default='qa_specialist')
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    phone_no = Column(Integer, nullable=False, unique=True)

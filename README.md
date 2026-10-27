@@ -87,8 +87,8 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
 | :--- | :--- |
 | **Frontend** | React 18, Redux Toolkit, Vite, Lucide Icons, Google Inter Font |
 | **Backend** | Python 3.11, FastAPI, SQLAlchemy (Async), Uvicorn |
-| **AI Agent** | LangGraph `StateGraph`, HuggingFace Inference API (`Qwen/Qwen2.5-Coder-32B-Instruct`) |
-| **LLM Integration** | LangChain Core, `JsonOutputParser` |
+| **AI Agent** | LangGraph `StateGraph`, Groq (`qwen/qwen3.8-27b`) primary + Gemini (`gemini-flash-lite-latest`) fallback |
+| **LLM Integration** | LangChain Core, LangChain-Groq, LangChain-Google-GenAI, `with_fallbacks()` |
 | **Database** | PostgreSQL (Supabase Cloud) / SQLite dual-fallback engine |
 | **Document Parsing** | PyPDF (`pypdf`), plain-text / EML fallback |
 | **PDF Generation** | FPDF2 + Pillow |
@@ -102,11 +102,11 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
 Health_care/
 ├── backend/
 │   ├── main.py                    # FastAPI app entry point, CORS, security headers
-│   ├── config.py                  # Settings (HF_API_KEY, DATABASE_URL, model names)
+│   ├── config.py                  # Settings (GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL)
 │   ├── requirements.txt           # Python dependencies
 │   ├── agents/
 │   │   ├── graph.py               # LangGraph StateGraph definition
-│   │   ├── llm.py                 # HuggingFace LLM caller with prompt injection guard
+│   │   ├── llm.py                 # Groq + Gemini LLM setup with fallback chain
 │   │   ├── prompts.py             # All LLM system & user prompt templates
 │   │   ├── state.py               # ComplaintAgentState TypedDict
 │   │   └── nodes/
@@ -116,13 +116,17 @@ Health_care/
 │   │       ├── document_extraction_tool.py # Parses uploaded document text
 │   │       ├── risk_assessment_node.py    # Computes severity & root cause
 │   │       └── response_formatter.py     # Formats natural language reply
+│   ├── auth/
+│   │   ├── security.py            # Password hashing & JWT token utilities
+│   │   ├── dependencies.py        # FastAPI JWT auth dependency (get_current_user)
+│   │   └── routes.py              # /api/auth/register & /api/auth/login endpoints
 │   ├── routes/
 │   │   ├── complaints.py          # CRUD, QA sign-off, audit trail
 │   │   ├── chat.py                # AI chat & document upload endpoints
 │   │   └── capa.py                # CAPA lifecycle & escalation endpoints
 │   ├── database/
 │   │   ├── connection.py          # Async SQLAlchemy engine & session
-│   │   └── models.py              # ORM models (Complaint, CAPA, Audit, Chat, QASignature)
+│   │   └── models.py              # ORM models (Complaint, CAPA, Audit, Chat, User)
 │   └── schemas/
 │       └── complaint_schema.py    # Pydantic request/response schemas
 └── frontend/
@@ -178,12 +182,13 @@ cd Health_care
 
 **`backend/.env`**
 ```env
-HF_API_KEY=hf_your_huggingface_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/aivoa_complaints
-HF_MODEL_PRIMARY=Qwen/Qwen2.5-Coder-32B-Instruct
+JWT_SECRET_KEY=your-super-secret-jwt-key
 ```
 
-> **Note:** Get a free HuggingFace API key at [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+> **Note:** Get a free Groq API key at [https://console.groq.com](https://console.groq.com) and Gemini key at [https://aistudio.google.com](https://aistudio.google.com)
 
 **`frontend/.env`**
 ```env
@@ -258,18 +263,22 @@ Access the app at **`http://localhost:5173`**
 fastapi>=0.100.0
 uvicorn[standard]>=0.22.0
 pydantic>=2.0
-sqlalchemy>=2.0.0
+sqlalchemy[asyncio]>=2.0.0
 asyncpg>=0.28.0
 aiosqlite>=0.19.0
 psycopg2-binary>=2.9.6
 python-dotenv>=1.0.0
+groq>=0.9.0
 langgraph>=0.1.0
 langchain-core>=0.2.0
-langchain-huggingface
+langchain-groq>=0.1.0
+langchain-google-genai>=2.0.0
 python-multipart>=0.0.6
 pypdf>=3.10.0
 fpdf2>=2.7.0
 Pillow>=10.0.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
 ```
 
 ---

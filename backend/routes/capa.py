@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import datetime, timedelta
 
@@ -10,6 +9,12 @@ from database.models import CAPA, CAPAActionItem, Complaint, ComplaintFieldAudit
 from schemas.complaint_schema import CAPARead, CAPACreate, CAPAUpdate, CAPAActionItemRead, CAPAActionItemCreate
 
 router = APIRouter(prefix="/api/capas", tags=["capas"])
+
+async def _attach_action_items(capa: CAPA, db: AsyncSession) -> CAPA:
+    stmt = select(CAPAActionItem).filter(CAPAActionItem.capa_id == capa.id).order_by(CAPAActionItem.id.asc())
+    res = await db.execute(stmt)
+    capa.action_items = res.scalars().all()
+    return capa
 
 async def generate_capa_number(db: AsyncSession) -> str:
     year = datetime.now().year
@@ -26,7 +31,7 @@ async def list_capas(
     severity: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(CAPA).options(selectinload(CAPA.action_items)).order_by(CAPA.updated_at.desc())
+    stmt = select(CAPA).order_by(CAPA.updated_at.desc())
     result = await db.execute(stmt)
     capas = result.scalars().all()
     
@@ -38,16 +43,18 @@ async def list_capas(
             continue
         if severity and c.severity.lower() != severity.lower():
             continue
+        await _attach_action_items(c, db)
         filtered.append(c)
     return filtered
 
 @router.get("/{capa_id}", response_model=CAPARead)
 async def get_capa(capa_id: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(CAPA).options(selectinload(CAPA.action_items)).filter(CAPA.id == capa_id)
+    stmt = select(CAPA).filter(CAPA.id == capa_id)
     result = await db.execute(stmt)
     capa = result.scalar_one_or_none()
     if not capa:
         raise HTTPException(status_code=404, detail="CAPA task not found")
+    await _attach_action_items(capa, db)
     return capa
 
 @router.post("", response_model=CAPARead)
@@ -130,13 +137,15 @@ async def create_capa(payload: CAPACreate, db: AsyncSession = Depends(get_db)):
 
     await db.commit()
 
-    stmt_full = select(CAPA).options(selectinload(CAPA.action_items)).filter(CAPA.id == new_capa.id)
+    stmt_full = select(CAPA).filter(CAPA.id == new_capa.id)
     res_full = await db.execute(stmt_full)
-    return res_full.scalar_one()
+    created_capa = res_full.scalar_one()
+    await _attach_action_items(created_capa, db)
+    return created_capa
 
 @router.put("/{capa_id}", response_model=CAPARead)
 async def update_capa(capa_id: int, payload: CAPAUpdate, db: AsyncSession = Depends(get_db)):
-    stmt = select(CAPA).options(selectinload(CAPA.action_items)).filter(CAPA.id == capa_id)
+    stmt = select(CAPA).filter(CAPA.id == capa_id)
     result = await db.execute(stmt)
     capa = result.scalar_one_or_none()
     if not capa:
@@ -148,6 +157,7 @@ async def update_capa(capa_id: int, payload: CAPAUpdate, db: AsyncSession = Depe
 
     await db.commit()
     await db.refresh(capa)
+    await _attach_action_items(capa, db)
     return capa
 
 @router.post("/{capa_id}/action-items", response_model=CAPAActionItemRead)
@@ -187,12 +197,14 @@ async def toggle_action_item_status(item_id: int, status: str, db: AsyncSession 
     await db.commit()
     await db.refresh(item)
 
-    stmt_capa = select(CAPA).options(selectinload(CAPA.action_items)).filter(CAPA.id == item.capa_id)
+    stmt_capa = select(CAPA).filter(CAPA.id == item.capa_id)
     capa_res = await db.execute(stmt_capa)
     capa_obj = capa_res.scalar_one_or_none()
-    if capa_obj and all(a.status == "Completed" for a in capa_obj.action_items):
-        capa_obj.status = "Completed"
-        await db.commit()
+    if capa_obj:
+        await _attach_action_items(capa_obj, db)
+        if all(a.status == "Completed" for a in capa_obj.action_items):
+            capa_obj.status = "Completed"
+            await db.commit()
 
     return item
 
