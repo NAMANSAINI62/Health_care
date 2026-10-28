@@ -30,8 +30,7 @@ async def init_db_tables():
             await conn.run_sync(Base.metadata.create_all)
         logger.info("PostgreSQL database connected and tables initialized.")
     except Exception as e:
-        logger.error(f"Failed to connect to PostgreSQL database: {e}")
-        raise
+        logger.warning(f"Could not connect to database on startup ({e}). Will retry on incoming requests.")
 
 async def get_db():
     async with AsyncSessionLocal() as session:
