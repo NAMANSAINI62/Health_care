@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from database.connection import get_db
 from database.models import User
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 class SignupRequest(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: str
     role: str = "QA Operator"
 
@@ -26,6 +26,12 @@ class TokenResponse(BaseModel):
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(req: SignupRequest, db: AsyncSession = Depends(get_db)):
+    if not req.email or "@" not in req.email or "." not in req.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a valid email address"
+        )
+
     # Check if username or email already exists
     stmt = select(User).where((User.username == req.username) | (User.email == req.email))
     result = await db.execute(stmt)
