@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 from database.connection import get_db
 from database.models import User
@@ -9,11 +9,9 @@ from auth.security import verify_password, get_password_hash, create_access_toke
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-
 class SignupRequest(BaseModel):
     username: str
-    email: str = Field(..., pattern=EMAIL_REGEX, description="Valid email address")
+    email: EmailStr
     password: str
     role: str = "QA Operator"
 
