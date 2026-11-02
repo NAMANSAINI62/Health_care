@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, func
-from datetime import datetime
 from database.connection import Base
 
 class Complaint(Base):
@@ -55,6 +54,6 @@ class User(Base):
     username = Column(String(100), index=True, nullable=False, unique=True)
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False, default="operator")
+    role = Column(String(50), nullable=False, default="user")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

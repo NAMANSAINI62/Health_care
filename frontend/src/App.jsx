@@ -6,25 +6,26 @@ import RiskAssessmentPanel from './components/RiskAssessmentPanel/RiskAssessment
 
 import CopilotChat from './components/CopilotChat/CopilotChat';
 import AuditLogModal from './components/AuditLogModal/AuditLogModal';
+import AuthScreen from './components/AuthScreen/AuthScreen';
 import { resetForm, setComplaintState } from './redux/complaintSlice';
 import { clearChat, setMessages } from './redux/chatSlice';
-import { fetchComplaintById, updateComplaintStatus } from './api/complaintsApi';
+import { setUser, logout } from './redux/authSlice';
+import { fetchComplaintById, fetchCurrentUser } from './api/complaintsApi';
 
 function App() {
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
-  const [activeComplaintFull, setActiveComplaintFull] = useState(null);
   const [rightPanelWidth, setRightPanelWidth] = useState(480);
   const [isResizing, setIsResizing] = useState(false);
   
   const dispatch = useDispatch();
-  const { complaintId, status } = useSelector((state) => state.complaint);
+  const { complaintId } = useSelector((state) => state.complaint);
+  const { isAuthenticated, isCheckingAuth } = useSelector((state) => state.auth);
   const leftPanelRef = useRef(null);
 
   const loadFullComplaint = useCallback(async (idToFetch) => {
     if (!idToFetch) return;
     try {
       const data = await fetchComplaintById(idToFetch);
-      setActiveComplaintFull(data);
       dispatch(setComplaintState({
         complaint_id: data.id,
         form_data: {
@@ -71,6 +72,17 @@ function App() {
     }
   }, [complaintId, loadFullComplaint]);
 
+  // Check and verify existing user session with HttpOnly cookie
+  useEffect(() => {
+    fetchCurrentUser()
+      .then((userData) => {
+        dispatch(setUser(userData));
+      })
+      .catch(() => {
+        dispatch(logout());
+      });
+  }, [dispatch]);
+
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
     setIsResizing(true);
@@ -105,17 +117,51 @@ function App() {
   const handleNewComplaint = () => {
     dispatch(resetForm());
     dispatch(clearChat());
-    setActiveComplaintFull(null);
     if (leftPanelRef.current) {
       leftPanelRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
+  // 1. Initial Session Verification: show sleek loader
+  if (isCheckingAuth) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f8fafc',
+        color: '#64748b',
+        gap: '14px',
+        fontFamily: 'Inter, -apple-system, sans-serif'
+      }}>
+        <div style={{
+          width: '32px',
+          height: '32px',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#0284c7',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <span style={{ fontSize: '0.9rem', fontWeight: 500, letterSpacing: '-0.01em' }}>
+          Verifying secure session...
+        </span>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated: Render ONLY the full-screen AuthScreen (dashboard & chat board are blocked)
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // 3. Authenticated: Render the full application
   return (
     <div className="app-shell">
       <Header
         complaintId={complaintId}
-        status={status}
         onNewComplaint={handleNewComplaint}
         onOpenAuditModal={() => setIsAuditModalOpen(true)}
       />
@@ -144,8 +190,6 @@ function App() {
         isOpen={isAuditModalOpen}
         onClose={() => setIsAuditModalOpen(false)}
       />
-
-
     </div>
   );
 }

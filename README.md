@@ -2,47 +2,59 @@
 
 **Pharmaceutical Manufacturing Quality Management System (FDA 21 CFR Part 11 Compliant)**
 
-An end-to-end AI-driven Quality Management System (QMS) for pharmaceutical FDF / Sterile / API customer complaint processing, automated triage, and CAPA management powered by a **LangGraph AI Agent**.
+An end-to-end, AI-driven Quality Management System (QMS) for Active Pharmaceutical Ingredient (API) customer complaint processing, automated triage and risk assessment.
 
 ---
 
 ## 🌐 Live Production Links
 
-| Service | URL |
-| :--- | :--- |
-| **Frontend (React + Vite)** | [https://health-care-five-rosy.vercel.app](https://health-care-five-rosy.vercel.app) *(Vercel CDN)* |
-| **Backend API (FastAPI)** | [https://health-care-t51v.onrender.com](https://health-care-t51v.onrender.com) *(Render)* |
-| **Cloud Database** | Supabase PostgreSQL Cloud |
-| **GitHub Repository** | [https://github.com/NAMANSAINI62/Health_care](https://github.com/NAMANSAINI62/Health_care) |
+| Service | Platform | URL |
+| :--- | :--- | :--- |
+| **Frontend UI** | Vercel (React 18 + Vite) | [https://health-care-five-rosy.vercel.app](https://health-care-five-rosy.vercel.app) |
+| **Backend API** | Render (FastAPI + SlowAPI) | [https://health-care-t51v.onrender.com](https://health-care-t51v.onrender.com) |
+| **Cloud Database** | Supabase Cloud | Managed PostgreSQL (Async via `asyncpg`) |
+| **Source Code** | GitHub | [https://github.com/NAMANSAINI62/Health_care](https://github.com/NAMANSAINI62/Health_care) |
 
 ---
 
 ## 🌟 Core Paradigm: 100% Agent-Driven Form Population
 
-The left-hand complaint form is **read-only output**. Users **never manually type** into form fields. All form entries, partial edits, QMS risk assessments, root cause predictions, and document extractions are fully orchestrated by the **LangGraph AI Co-Pilot** in the right chat panel via natural language conversation or document uploads (`.pdf`, `.txt`, `.eml`, `.doc`, `.docx`).
+The left-hand complaint form is a **read-only reactive display**. Regulatory operators and QA specialists **never manually type** into form fields. All form entries, partial edits, QMS risk assessments, root cause determinations, and document extractions are orchestrated by the **LangGraph AI Co-Pilot** in the right-hand chat panel via natural language conversation or direct document uploads (`.pdf`, `.txt`, `.eml`, `.doc`, `.docx`).
 
 ---
 
-## ✨ Features & Key Capabilities
+## ✨ Features & Capabilities
 
-### 🤖 AI Agent (LangGraph)
-1. **12-Field Intelligent Extraction & Inference** — Automatically extracts/infers: `Complaint Source`, `Customer Name`, `Product Name`, `Dosage/Strength`, `Batch/Lot Number`, `Manufacturing Date`, `Expiry Date`, `Affected Quantity`, `Complaint Category`, `Manufacturing Site/Block`, `Impacted NPM`, and `Detailed Description`.
-2. **Partial Field Editing & State Preservation** — Updates *only* explicitly requested fields while strictly preserving all untouched data.
-3. **QMS Risk Assessment Engine** — Computes Severity (`Minor`, `Major`, `Critical`), Suggested QMS Action, Risk Narrative, and **Predicted Root Cause**.
-4. **Document Extraction Mode** — Parses uploaded PDF/TXT/EML/DOC/DOCX files and auto-populates complaint form fields.
+### 🤖 AI Agent Workflow (LangGraph & LangChain)
+1. **12-Field Intelligent Extraction & Inference** — Extracts and normalizes:
+   - `Complaint Source`, `Customer Name`, `Product Name`, `Dosage/Strength`
+   - `Batch/Lot Number`, `Manufacturing Date`, `Expiry Date`, `Affected Quantity`
+   - `Complaint Category`, `Originating Site/Block`, `Impacted NPM`, `Detailed Description`
+2. **Partial Field Editing with State Preservation** — Allows operators to request changes to specific fields (e.g., *"Update batch to B-8821 and quantity to 150 vials"*). The agent merges only the requested differences while strictly maintaining all existing complaint data.
+3. **In-Memory Document Extraction (Zero-RAG)** — Directly parses uploaded regulatory documents in RAM with `pypdf`, feeding structured text chunks into the LangGraph extraction pipeline without needing vector databases or embedding indexing.
+4. **Resilient Multi-LLM Fallback** — Employs Groq (`qwen/qwen3.8-27b`) as the ultra-fast primary inference engine with automated fallback to Google Gemini (`gemini-flash-lite-latest`) using `ChatModel.with_fallbacks()`.
+5. **QMS Risk & Prevention Engine** — Predicts root causes and suggests corrective/preventive actions (CAPA-aligned guidance) based on pharmaceutical quality standards.
 
-### 📋 CAPA Management
-8. **Automated CAPA Generation** — Auto-spawns structured CAPA records with corrective & preventive action items for Critical/Major severity complaints.
-9. **CAPA Lifecycle Tracking** — Full CAPA workflow: `Open -> In Progress -> Completed`, with individual action item completion tracking.
-10. **CAPA Escalation Engine** — Escalate overdue CAPAs to `Escalated - Level 1/2/3` with automated audit trail entries.
+### 🛡️ Enterprise Security & Authentication
+1. **HttpOnly Cookie-Based JWT Auth** — Authentication tokens are stored in `HttpOnly`, `SameSite=Lax` cookies rather than `localStorage`. This completely eliminates token theft risks via Cross-Site Scripting (XSS).
+2. **SlowAPI Rate Limiting** — Dedicated brute-force defense throttling:
+   - `/api/auth/login`: **5 requests/minute/IP**
+   - `/api/auth/register`: **5 requests/minute/IP**
+   - `/api/complaints/chat`: **5 requests/minute/IP**
+3. **Anti-Injection & Input Sanitization** — Username inputs enforce strict regex filters (`^[a-zA-Z0-9_.\-]+$`), email strings are validated via RFC-compliant `EmailStr`, and SQL injection characters are blocked before reaching database queries.
+4. **Anti-Enumeration Safeguards** — Generic authentication responses prevent attackers from discovering registered user emails or usernames.
+5. **Prompt Injection Guardrails** — User inputs are wrapped in strict XML data boundaries (`<user_input>...</user_input>`) with system instructions to treat content purely as literal data.
+6. **HTTP Security Headers** — Injected on every response: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, and `Referrer-Policy: strict-origin-when-cross-origin`.
 
-### 🛡️ Compliance & Audit (FDA 21 CFR Part 11)
-11. **Immutable Field Audit Trail** — Tracks every field mutation (`old_value -> new_value`, `changed_by`, `timestamp`) formatted in **Indian Standard Time (IST)**.
-12. **Zero-Data-Loss F5 Refresh** — Persists active `complaint_id` in `localStorage` and auto-hydrates full state and chat history on page reload.
+### 📋 Compliance & Regulatory Audit (FDA 21 CFR Part 11)
+1. **Immutable Field-Level Audit Trail** — Automatically captures every mutation (`field_name`, `old_value`, `new_value`, `changed_by`, `timestamp`) formatted in **Indian Standard Time (IST)**.
+2. **Zero-Data-Loss Hydration** — Active complaint context is retained across browser reloads via automated state hydration.
+3. **Session Verification** — Automatic `/api/auth/me` background verification on application load with user profile badge and logout controls.
 
-### 🎨 UI/UX
-14. **Dynamic Draggable Splitter** — Left/right panels separated by a resizable divider with smooth scrolling.
-15. **Soft Sky-Blue Enterprise Theme** — Clean light theme with pill-shaped action buttons and 10 ready-to-click quick-prompt chips.
+### 🎨 Enterprise UI/UX
+1. **Interactive Draggable Split Pane** — Left form and right chat separated by a draggable splitter with smooth scrolling.
+2. **Dedicated Authentication Gate** — Modern tabbed login and registration interface with error handling and validation.
+3. **Quick-Prompt Suggestions** — One-click buttons to accelerate standard complaint ingestion.
 
 ---
 
@@ -59,13 +71,13 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
           +-------------------------+-----------------------+
           v                         v                       v
  log_complaint_node       edit_complaint_node    document_extraction_node
- (Extracts 12 fields)   (Merges ONLY diff with  (Parses doc text & extracts
-                         existing DB complaint)        fresh fields)
+ (Extracts 12 fields)   (Merges ONLY diff with  (Parses in-memory doc text &
+                         existing DB complaint)    extracts fresh fields)
           +-------------------------+-----------------------+
                                     v
                           risk_assessment_node
-              (LLM computes: Severity, Suggested Action,
-              Risk Narrative, & Likely Root Cause)
+              (LLM predicts: Prevention & Corrective Action,
+               Likely Root Cause, & Risk Narrative)
                                     |
                                     v
                         response_formatter_node
@@ -81,17 +93,33 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
 
 ---
 
+## 🛡️ Security Hardening Matrix
+
+| # | Security Control | Threat Mitigated | Technical Implementation |
+| :--- | :--- | :--- | :--- |
+| 1 | **HttpOnly Cookies** | XSS Token Theft | JWT stored in `HttpOnly`, `SameSite=Lax`, `Secure` cookies (`path="/"`) |
+| 2 | **SlowAPI Rate Limiting** | Brute Force & Credential Stuffing | IP-based limits: 5 req/min on `/login` and `/register` |
+| 3 | **Input Validation & Regex** | SQL Injection & Payload Injections | Pydantic v2 schemas + regex pattern `^[a-zA-Z0-9_.\-]+$` |
+| 4 | **Anti-Enumeration** | User Harvesting / Enumeration | Uniform error details on failed auth attempts |
+| 5 | **Prompt Injection Guardrails** | LLM Jailbreak & Instruction Hijacking | Enclosed in `<user_input>` XML tags with strict system delimiters |
+| 6 | **In-Memory File Parsing** | Shell Execution & Disk Tampering | Direct RAM extraction via `pypdf` with 5 MB cap & extension whitelist |
+| 7 | **HTTP Security Headers** | MIME Sniffing, Clickjacking, XSS | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `X-XSS-Protection` |
+| 8 | **Strict CORS Policy** | Unauthorized Cross-Origin Requests | Whitelisted origins with `allow_credentials=True` |
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 | :--- | :--- |
-| **Frontend** | React 18, Redux Toolkit, Vite, Lucide Icons, Google Inter Font |
-| **Backend** | Python 3.11, FastAPI, SQLAlchemy (Async), Uvicorn |
-| **AI Agent** | LangGraph `StateGraph`, Groq (`qwen/qwen3.8-27b`) primary + Gemini (`gemini-flash-lite-latest`) fallback |
-| **LLM Integration** | LangChain Core, LangChain-Groq, LangChain-Google-GenAI, `with_fallbacks()` |
-| **Database** | PostgreSQL (Supabase Cloud) / SQLite dual-fallback engine |
-| **Document Parsing** | PyPDF (`pypdf`), plain-text / EML fallback |
-| **PDF Generation** | FPDF2 + Pillow |
+| **Frontend** | React 18, Vite, Redux Toolkit, Lucide React
+| **Backend** | Python 3.11+, FastAPI (Modern `lifespan` handler), SQLAlchemy (Async)
+| **Rate Limiter** | SlowAPI (IP-keyed rate limiting with automated 429 handlers) |
+| **AI Orchestration** | LangGraph `StateGraph`, LangChain Core |
+| **Inference Engines** | Groq (`qwen/qwen3.8-27b`) primary + Google Gemini (`gemini-flash-lite-latest`) fallback |
+| **Database** | PostgreSQL on Supabase Cloud (async connection via `asyncpg` + `greenlet`) |
+| **Auth & Security** | Passlib (Bcrypt password hashing), Python-Jose (JWT), HttpOnly Cookies |
+| **Document Parsing** | In-Memory PyPDF (`pypdf`), Plain-Text, EML |
 | **Deployment** | Vercel (Frontend), Render (Backend), Supabase (PostgreSQL) |
 
 ---
@@ -101,67 +129,88 @@ The left-hand complaint form is **read-only output**. Users **never manually typ
 ```
 Health_care/
 ├── backend/
-│   ├── main.py                    # FastAPI app entry point, CORS, security headers
-│   ├── config.py                  # Settings (GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL)
-│   ├── requirements.txt           # Python dependencies
+│   ├── main.py                     # FastAPI entrypoint, lifespan startup, CORS, SlowAPI & security headers
+│   ├── config.py                   # Environment settings (GROQ, GEMINI, DATABASE_URL)
+│   ├── limiter.py                  # SlowAPI centralized rate limiter instance
+│   ├── requirements.txt            # Backend Python dependencies
 │   ├── agents/
-│   │   ├── graph.py               # LangGraph StateGraph definition
-│   │   ├── llm.py                 # Groq + Gemini LLM setup with fallback chain
-│   │   ├── prompts.py             # All LLM system & user prompt templates
-│   │   ├── state.py               # ComplaintAgentState TypedDict
+│   │   ├── graph.py                # LangGraph StateGraph workflow definition
+│   │   ├── llm.py                  # Groq + Gemini LLM fallback chain
+│   │   ├── prompts.py              # System prompts & XML data boundaries
+│   │   ├── state.py                # ComplaintAgentState TypedDict
 │   │   └── nodes/
-│   │       ├── intent_router.py           # Classifies user intent
-│   │       ├── log_complaint_tool.py      # Extracts 12 fields from user message
-│   │       ├── edit_complaint_tool.py     # Merges partial field edits
-│   │       ├── document_extraction_tool.py # Parses uploaded document text
-│   │       ├── risk_assessment_node.py    # Computes severity & root cause
-│   │       └── response_formatter.py     # Formats natural language reply
+│   │       ├── intent_router.py            # Intent classification node
+│   │       ├── log_complaint_tool.py       # 12-field extraction node
+│   │       ├── edit_complaint_tool.py      # Partial edit & diff merge node
+│   │       ├── document_extraction_tool.py  # In-memory document parser node
+│   │       ├── risk_assessment_node.py     # QMS risk & root cause analysis
+│   │       └── response_formatter.py      # Natural language confirmation builder
 │   ├── auth/
-│   │   ├── security.py            # Password hashing & JWT token utilities
-│   │   ├── dependencies.py        # FastAPI JWT auth dependency (get_current_user)
-│   │   └── routes.py              # /api/auth/register & /api/auth/login endpoints
+│   │   ├── security.py             # Bcrypt hashing & JWT token generation
+│   │   └── dependencies.py         # Cookie-based current user extraction dependency
 │   ├── routes/
-│   │   ├── complaints.py          # CRUD, QA sign-off, audit trail
-│   │   ├── chat.py                # AI chat & document upload endpoints
-│   │   └── capa.py                # CAPA lifecycle & escalation endpoints
+│   │   ├── auth_routes.py          # /register, /login (rate-limited), /me, /logout
+│   │   ├── complaints.py           # Complaint CRUD and field audit logs
+│   │   └── chat.py                 # AI copilot chat & in-memory document upload
 │   ├── database/
-│   │   ├── connection.py          # Async SQLAlchemy engine & session
-│   │   └── models.py              # ORM models (Complaint, CAPA, Audit, Chat, User)
+│   │   ├── connection.py           # Async SQLAlchemy engine & session maker
+│   │   └── models.py               # ORM Models (User, Complaint, ChatMessage, AuditLog)
 │   └── schemas/
-│       └── complaint_schema.py    # Pydantic request/response schemas
-└── frontend/
-    ├── src/
-    │   ├── App.jsx                # Root app with draggable splitter layout
-    │   ├── main.jsx               # React entry point
-    │   ├── index.css              # Global styles (sky-blue enterprise theme)
-    │   ├── api/                   # Axios API service layer
-    │   ├── redux/                 # Redux Toolkit store & slices
-    │   └── components/
-    │       ├── Header/            # App header with nav
-    │       ├── ComplaintForm/     # Read-only AI-populated form
-    │       ├── CopilotChat/       # AI chat panel with file upload
-    │       ├── RiskAssessmentPanel/  # Severity, root cause, actions
-    │       ├── CapaDashboard/     # CAPA list with filters
-    │       ├── CapaDetailModal/   # CAPA detail & action items
-    │       ├── AuditLogModal/     # Field mutation history
-    │       ├── DigitalSignatureModal/ # FDA 21 CFR Part 11 QA sign-off
-    │       └── StatusPill/        # Complaint status badge
-    ├── package.json
-    └── vite.config.js
+│       └── complaint_schema.py     # Pydantic validation & response models
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx                 # Application layout, auth gating, draggable divider
+│   │   ├── main.jsx                # React DOM entrypoint
+│   │   ├── index.css               # Sky-blue enterprise theme styling
+│   │   ├── api/
+│   │   │   └── complaintsApi.js    # Axios client with credentials (cookies) enabled
+│   │   ├── redux/
+│   │   │   ├── store.js            # Redux Toolkit store configuration
+│   │   │   ├── authSlice.js        # Auth state, user profile & session management
+│   │   │   ├── complaintSlice.js   # 12-field form data & risk state
+│   │   │   └── chatSlice.js        # Chat messages, streaming & upload state
+│   │   └── components/
+│   │       ├── Header/             # Brand header, user profile badge, logout & audit trigger
+│   │       ├── AuthScreen/         # Sign In / Create Account modal
+│   │       ├── ComplaintForm/      # 12-field AI-populated read-only QMS form
+│   │       ├── CopilotChat/        # AI Copilot chat panel with document upload
+│   │       ├── RiskAssessmentPanel/# Root cause analysis & preventive solutions
+│   │       └── AuditLogModal/      # timestamped history
+│   ├── package.json
+│   └── vite.config.js
+├── pyrightconfig.json              # IDE Pyright type-checker configuration
+└── requirements.txt                # Root production dependencies
 ```
 
 ---
 
-## 🛡️ Security Hardening
+## 📡 API Reference
 
-| # | Security Control | Implementation |
+### 🔐 Authentication (`/api/auth`)
+| Method | Endpoint | Rate Limit | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | 5 / min | Register new user with username, email, and password |
+| `POST` | `/api/auth/login` | 5 / min | Authenticate user and issue secure `HttpOnly` cookie |
+| `GET` | `/api/auth/me` | — | Retrieve current authenticated user session |
+| `POST` | `/api/auth/logout` | — | Invalidate and clear the `HttpOnly` session cookie |
+
+### 📋 Complaints Management (`/api/complaints`)
+| Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| 1 | **Prompt Injection Guardrails** | User inputs wrapped in `<user_input>...</user_input>` XML tags with strict system instructions to treat enclosed content purely as data |
-| 2 | **File Upload Validation** | 5 MB max file size + strict extension whitelist (`.pdf`, `.txt`, `.eml`, `.doc`, `.docx`) |
-| 3 | **API Rate Limiting** | In-memory IP rate limiter — **5 requests/minute/IP** → HTTP 429 on breach |
-| 4 | **HTTP Security Headers** | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `X-XSS-Protection`, `Referrer-Policy` injected on every response |
-| 5 | **Input Length Cap** | Chat messages capped at **5,000 characters** → HTTP 400 on breach |
-| 6 | **CORS Policy** | Restricted to approved frontend origins only |
+| `GET` | `/api/complaints` | Retrieve all complaints (ordered by latest update) |
+| `GET` | `/api/complaints/{id}` | Retrieve specific complaint with chat history and audit logs |
+| `GET` | `/api/complaints/{id}/audit` | Retrieve field-level audit trail |
+
+### 🤖 AI Copilot & Document Upload
+| Method | Endpoint | Rate Limit | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/complaints/chat` | 5 / min | Send conversation message to the LangGraph AI Co-Pilot |
+| `POST` | `/api/complaints/upload` | 5 / min | Upload PDF/document for direct in-memory AI extraction |
+
+### 🩺 System Health
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Check API server status and connection health |
 
 ---
 
@@ -170,7 +219,7 @@ Health_care/
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL (or use the built-in SQLite fallback)
+- PostgreSQL database (e.g., Supabase Cloud)
 
 ### 1. Clone the Repository
 ```bash
@@ -184,11 +233,12 @@ cd Health_care
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
-DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/aivoa_complaints
+DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@your-supabase-host:5432/postgres
 JWT_SECRET_KEY=your-super-secret-jwt-key
+ENV=development
 ```
 
-> **Note:** Get a free Groq API key at [https://console.groq.com](https://console.groq.com) and Gemini key at [https://aistudio.google.com](https://aistudio.google.com)
+> **API Key Tips:** Get a free Groq key at [console.groq.com](https://console.groq.com) and a Gemini key at [aistudio.google.com](https://aistudio.google.com).
 
 **`frontend/.env`**
 ```env
@@ -200,87 +250,13 @@ VITE_API_BASE_URL=http://localhost:8000
 cd backend
 pip install -r requirements.txt
 python main.py
-# or: uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+# Server starts at http://127.0.0.1:8000
 ```
 
-### 4. Run Frontend (React Vite)
+### 4. Run Frontend (React + Vite)
 ```bash
 cd frontend
 npm install
 npm run dev
+# App opens at http://localhost:5173
 ```
-Access the app at **`http://localhost:5173`**
-
----
-
-## 🌐 Cloud Deployment Architecture
-
-| Component | Host | URL | Config |
-| :--- | :--- | :--- | :--- |
-| **Frontend (React)** | Vercel | [health-care-five-rosy.vercel.app](https://health-care-five-rosy.vercel.app) | Framework: `Vite`, Root: `frontend/`, Build: `npm run build` |
-| **Backend (FastAPI)** | Render | [health-care-t51v.onrender.com](https://health-care-t51v.onrender.com) | Root: `backend/`, Build: `pip install -r requirements.txt`, Start: `uvicorn main:app --host 0.0.0.0 --port $PORT` |
-| **Database** | Supabase | PostgreSQL Cloud | Connection via `postgresql+asyncpg://...` URI |
-
----
-
-## 📡 API Endpoints Reference
-
-### Complaints
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/complaints` | List all complaints (ordered by updated_at desc) |
-| `GET` | `/api/complaints/{id}` | Get single complaint with full relations |
-| `GET` | `/api/complaints/{id}/audit` | Get field-level audit trail |
-| `POST` | `/api/complaints/{id}/status` | Update complaint status |
-
-### AI Chat & Document Upload
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/complaints/chat` | Send message to LangGraph AI Co-Pilot |
-| `POST` | `/api/complaints/upload` | Upload document for AI extraction |
-
-### CAPA Management
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/capas` | List CAPAs (filter by dept/status/severity) |
-| `GET` | `/api/capas/{id}` | Get CAPA detail with action items |
-| `POST` | `/api/capas` | Create new CAPA |
-| `PUT` | `/api/capas/{id}` | Update CAPA fields |
-| `POST` | `/api/capas/{id}/action-items` | Add action item to CAPA |
-| `PUT` | `/api/capas/action-items/{id}` | Toggle action item status |
-| `POST` | `/api/capas/{id}/escalate` | Escalate overdue CAPA |
-
-### Health
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | API health check |
-
----
-
-## 📦 Python Dependencies
-
-```
-fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-pydantic>=2.0
-sqlalchemy[asyncio]>=2.0.0
-asyncpg>=0.28.0
-aiosqlite>=0.19.0
-psycopg2-binary>=2.9.6
-python-dotenv>=1.0.0
-groq>=0.9.0
-langgraph>=0.1.0
-langchain-core>=0.2.0
-langchain-groq>=0.1.0
-langchain-google-genai>=2.0.0
-python-multipart>=0.0.6
-pypdf>=3.10.0
-fpdf2>=2.7.0
-Pillow>=10.0.0
-passlib[bcrypt]>=1.7.4
-python-jose[cryptography]>=3.3.0
-```
-
----
-
-*Built with love for pharmaceutical quality management compliance.*

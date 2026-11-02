@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List, Optional
-from datetime import datetime, timedelta
+from typing import List
 from database.connection import get_db
 from database.models import Complaint, ComplaintChatMessage, ComplaintFieldAudit
-from schemas.complaint_schema import ComplaintRead, AuditLogRead, ChatMessageRead
+from schemas.complaint_schema import ComplaintRead, AuditLogRead
 
 router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
@@ -56,16 +55,4 @@ async def get_complaint_audit(complaint_id: int, db: AsyncSession = Depends(get_
     stmt = select(ComplaintFieldAudit).filter(ComplaintFieldAudit.complaint_id == complaint_id).order_by(ComplaintFieldAudit.changed_at.desc())
     result = await db.execute(stmt)
     return result.scalars().all()
-
-@router.post("/{complaint_id}/status")
-async def update_complaint_status(complaint_id: int, status: str, db: AsyncSession = Depends(get_db)):
-    stmt = select(Complaint).filter(Complaint.id == complaint_id)
-    result = await db.execute(stmt)
-    complaint = result.scalar_one_or_none()
-    if not complaint:
-        raise HTTPException(status_code=404, detail="Complaint not found")
-    complaint.status = status  # type: ignore[assignment]
-    await db.commit()
-    await db.refresh(complaint)
-    return {"id": complaint.id, "status": complaint.status}
 

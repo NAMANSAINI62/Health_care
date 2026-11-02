@@ -4,10 +4,35 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // It basicakly enables browser to automatically send and receive HttpOnly cookies
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Auth API Methods
+export const registerUser = async ({ username, email, password }) => {
+  const response = await api.post('/api/auth/register', { username, email, password });
+  return response.data;
+};
+
+export const loginUser = async ({ username, password }) => {
+  const response = await api.post('/api/auth/login', { username, password });
+  return response.data;
+};
+
+export const fetchCurrentUser = async () => {
+  const response = await api.get('/api/auth/me');
+  return response.data;
+};
+
+export const logoutUser = async () => {
+  try {
+    await api.post('/api/auth/logout');
+  } catch (e) {
+    // ignore server errors during logout
+  }
+};
 
 export const sendChatMessage = async (complaintId, message) => {
   const response = await api.post('/api/complaints/chat', {
@@ -45,11 +70,6 @@ export const fetchComplaintById = async (id) => {
 
 export const fetchComplaintAudit = async (id) => {
   const response = await api.get(`/api/complaints/${id}/audit`);
-  return response.data;
-};
-
-export const updateComplaintStatus = async (id, status) => {
-  const response = await api.post(`/api/complaints/${id}/status?status=${encodeURIComponent(status)}`);
   return response.data;
 };
 

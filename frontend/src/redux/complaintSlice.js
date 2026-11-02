@@ -34,13 +34,10 @@ const complaintSlice = createSlice({
     riskAssessment: initialRiskAssessment,
     status: 'Pending Triage',
     lastUpdatedFields: [],
-    scannedImagePreview: null,
-    detectedDefects: [],
-    isScanningImage: false,
   },
   reducers: {
     setComplaintState: (state, action) => {
-      const { complaint_id, form_data, risk_assessment, status, scanned_image_preview, detected_defects } = action.payload;
+      const { complaint_id, form_data, risk_assessment, status } = action.payload;
       if (complaint_id) {
         state.complaintId = complaint_id;
         sessionStorage.setItem('active_complaint_id', complaint_id.toString());
@@ -54,24 +51,9 @@ const complaintSlice = createSlice({
       if (status) {
         state.status = status;
       }
-      if (scanned_image_preview !== undefined) {
-        state.scannedImagePreview = scanned_image_preview;
-      }
-      if (detected_defects !== undefined) {
-        state.detectedDefects = detected_defects;
-      }
     },
     setLastUpdatedFields: (state, action) => {
       state.lastUpdatedFields = action.payload;
-    },
-    setScannedImagePreview: (state, action) => {
-      state.scannedImagePreview = action.payload;
-    },
-    setDetectedDefects: (state, action) => {
-      state.detectedDefects = action.payload;
-    },
-    setIsScanningImage: (state, action) => {
-      state.isScanningImage = action.payload;
     },
     resetForm: (state) => {
       state.complaintId = null;
@@ -80,12 +62,9 @@ const complaintSlice = createSlice({
       state.riskAssessment = initialRiskAssessment;
       state.status = 'Pending Triage';
       state.lastUpdatedFields = [];
-      state.scannedImagePreview = null;
-      state.detectedDefects = [];
-      state.isScanningImage = false;
     }
   }
 });
 
-export const { setComplaintState, setLastUpdatedFields, setScannedImagePreview, setDetectedDefects, setIsScanningImage, resetForm } = complaintSlice.actions;
+export const { setComplaintState, setLastUpdatedFields, resetForm } = complaintSlice.actions;
 export default complaintSlice.reducer;

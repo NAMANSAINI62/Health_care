@@ -1037,14 +1037,7 @@ textarea.form-control-readonly {
   border-color: #bae6fd;
 }
 
-/* Single View Container for CAPA */
-.main-layout-single {
-  height: calc(100vh - 64px);
-  width: 100vw;
-  overflow-y: auto;
-  background: #f8fafc;
-  padding: 28px 40px;
-}
+
 
 /* HITL Risk Panel Banner */
 .hitl-action-banner {

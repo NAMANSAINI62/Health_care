@@ -4,7 +4,7 @@ import { ShieldAlert, Activity, Lightbulb } from 'lucide-react';
 
 export const RiskAssessmentPanel = () => {
   const { riskAssessment } = useSelector((state) => state.complaint);
-  const severity = (riskAssessment.severity || 'Minor').toLowerCase();
+
 
   return (
     <div className="risk-card">
@@ -13,15 +13,13 @@ export const RiskAssessmentPanel = () => {
           <ShieldAlert size={18} className="text-amber-500" />
           Risk Assessment & Regulatory Verification
         </div>
-        <span className={`severity-pill ${severity}`}>
-          Severity: {riskAssessment.severity || 'Minor'}
-        </span>
+
       </div>
 
       <div className="risk-block">
         <div className="risk-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Activity size={15} className="text-blue-600" />
-          Prevention & Corrective Solution (Suggested QMS Action)
+          Prevention & Corrective Solution
         </div>
         <div className="risk-text font-medium" style={{ color: '#0369a1', background: '#f0f9ff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
           {riskAssessment.suggested_next_action || 'Awaiting AI complaint analysis...'}
