@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI):
     await init_db_tables()
     yield
 
+from fastapi.responses import JSONResponse
+
 app = FastAPI(
     title="Pharma QMS Complaint API",
     description="Secure Backend API for Customer Complaint Management System",
@@ -31,7 +33,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
+
+async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Too many requests (Rate limit exceeded: 5 attempts per minute). Please wait 60 seconds before trying again.",
+            "error": "Rate limit exceeded"
+        }
+    )
+
+app.add_exception_handler(RateLimitExceeded, cast(Any, custom_rate_limit_handler))
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)

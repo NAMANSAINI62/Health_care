@@ -38,13 +38,22 @@ export const AuthScreen = () => {
     }
 
     if (authMode === 'register') {
+      if (cleanUsername.length < 3) {
+        setError('Username must be at least 3 characters long');
+        return;
+      }
+      const usernamePattern = /^[a-zA-Z0-9_.\-]+$/;
+      if (!usernamePattern.test(cleanUsername)) {
+        setError('Username can only contain letters, numbers, underscores (_), hyphens (-), and periods (.)');
+        return;
+      }
       if (!cleanEmail) {
         setError('Please enter your email address');
         return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(cleanEmail)) {
-        setError('Please enter a valid email address');
+        setError('Please enter a valid email address (e.g. name@example.com)');
         return;
       }
     }
@@ -58,7 +67,7 @@ export const AuthScreen = () => {
       return;
     }
     if (authMode === 'register' && password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match. Please re-enter identical passwords.');
       return;
     }
 
@@ -80,21 +89,57 @@ export const AuthScreen = () => {
         setPassword('');
         setEmail('');
         setConfirmPassword('');
-        setSuccess(data.message || 'Account created successfully!');
+        setSuccess(data.message || 'Account created successfully! Please sign in with your credentials.');
         dispatch(setAuthMode('login'));
       }
     } catch (err) {
-      const detail = err.response?.data?.detail;
-      if (typeof detail === 'string') {
-        setError(detail);
-      } else if (Array.isArray(detail)) {
-        setError(detail[0]?.msg || 'Validation failed. Please verify your input.');
+      // 1. Network / Server Unreachable Error
+      if (!err.response) {
+        setError('Unable to reach the server. Please check your network connection or verify that the backend is running.');
+        return;
+      }
+
+      const status = err.response.status;
+      const data = err.response.data;
+
+      // 2. Rate limit error (429)
+      if (status === 429) {
+        setError(data?.detail || data?.error || 'Rate limit exceeded: Maximum 5 attempts allowed per minute. Please wait 60 seconds.');
+        return;
+      }
+
+      // 3. Validation errors from Pydantic (422)
+      if (status === 422 && Array.isArray(data?.detail)) {
+        const firstErr = data.detail[0];
+        const fieldName = firstErr?.loc?.[firstErr.loc.length - 1] || 'Field';
+        const msg = firstErr?.msg || 'Invalid value';
+
+        if (firstErr?.type?.includes('pattern') || msg.includes('pattern')) {
+          setError('Username can only contain letters, numbers, underscores (_), hyphens (-), and periods (.)');
+        } else if (msg.includes('at least')) {
+          setError(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} ${msg}`);
+        } else {
+          setError(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}: ${msg}`);
+        }
+        return;
+      }
+
+      // 4. Custom API errors (400, 401, 403, 500)
+      const apiMsg = data?.detail || data?.error || data?.message;
+      if (typeof apiMsg === 'string') {
+        setError(apiMsg);
+        return;
+      }
+
+      // 5. Friendly generic fallbacks
+      if (status === 401) {
+        setError('Invalid username/email or password. Please verify your credentials.');
+      } else if (status === 403) {
+        setError('Your account is deactivated. Please contact your system administrator.');
+      } else if (status === 400) {
+        setError('Username or email is already registered. Please sign in or choose another.');
       } else {
-        setError(
-          authMode === 'login'
-            ? 'Invalid username or password'
-            : 'Registration failed.'
-        );
+        setError(authMode === 'login' ? 'Failed to sign in. Please try again.' : 'Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);

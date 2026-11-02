@@ -51,7 +51,7 @@ async def register(request: Request, req: SignupRequest, response: Response, db:
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username or email is already registered"
+            detail="Username or email is already registered. Please sign in or choose another."
         )
 
     new_user = User(
@@ -87,13 +87,13 @@ async def login(request: Request, req: LoginRequest, response: Response, db: Asy
     if not user or not verify_password(req.password, str(user.hashed_password)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username/email or password"
+            detail="Invalid username/email or password. Please check your credentials and try again."
         )
 
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is deactivated"
+            detail="Your account is deactivated. Please contact your system administrator."
         )
 
     access_token = create_access_token(data={
