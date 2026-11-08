@@ -56,6 +56,7 @@ async def add_security_headers(request: Request, call_next):
 # Configure CORS Security with Cookie Support (Credentials require explicit origins)
 # Production origins from env var CORS_ORIGINS (comma-separated), plus local dev defaults
 _default_origins = [
+    "https://health-care-five-rosy.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
