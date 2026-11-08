@@ -102,14 +102,15 @@ async def login(request: Request, req: LoginRequest, response: Response, db: Asy
     })
 
     # Set JWT in secure HttpOnly cookie
-    # secure=True in production so cookie is only sent over HTTPS
+    # Cross-origin deployment (Vercel frontend + Render backend) requires SameSite=None + Secure
+    # SameSite=Lax only works when frontend and backend share the same domain
     response.set_cookie(
         key=COOKIE_NAME,
         value=access_token,
         httponly=True,
         max_age=COOKIE_MAX_AGE,
         expires=COOKIE_MAX_AGE,
-        samesite="lax",
+        samesite="none" if IS_PRODUCTION else "lax",
         secure=IS_PRODUCTION,
         path="/"
     )

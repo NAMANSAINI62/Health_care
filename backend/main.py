@@ -54,14 +54,19 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # Configure CORS Security with Cookie Support (Credentials require explicit origins)
+# Production origins from env var CORS_ORIGINS (comma-separated), plus local dev defaults
+_default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+]
+_env_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+_all_origins = list(dict.fromkeys(_env_origins + _default_origins))  # deduplicate, env first
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-    ],
+    allow_origins=_all_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
